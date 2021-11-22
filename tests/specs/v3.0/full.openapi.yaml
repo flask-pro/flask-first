@@ -1,0 +1,140 @@
+openapi: 3.0.3
+info:
+  title: Specification including all fields from OpenAPI
+  description: This specification attempts all the features of OpenAPI into a single reference file.
+  termsOfService: https://github.com/flask-pro/Flask-First/blob/master/LICENSE
+  contact:
+    name: Konstantin Fadeev
+    url: https://github.com/flask-pro/Flask-First
+    email: fadeev@stantis.ru
+  license:
+    name: The MIT License (MIT)
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: https://{environment}.example.com:{port}/{version}
+    description: The API server
+    variables:
+      environment:
+        default: development
+        description: Application launch environment.
+      port:
+        enum:
+          - '80'
+          - '443'
+        default: '443'
+      version:
+        default: v2
+paths:
+  /route_path/{from_path}:
+    parameters:
+      - name: from_header
+        in: header
+        description: parameter from header
+        required: true
+        schema:
+          type: string
+        style: simple
+      - $ref: "#/components/parameters/FromPath"
+    get:
+      operationId: route_path
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  string_field:
+                    type: string
+      security:
+        - http_basic: []
+        - api_key: []
+        - jwt: []
+  /only_reference/{from_path}:
+    parameters:
+      - $ref: "#/components/parameters/FromPath"
+    get:
+      operationId: get_only_reference
+      responses:
+        "200":
+          $ref: "#/components/responses/ItemResponse"
+    post:
+      operationId: post_only_reference
+      responses:
+        "200":
+          $ref: "#/components/responses/ItemResponse"
+      requestBody:
+        $ref: "#/components/requestBodies/ItemRequest"
+components:
+  schemas:
+    RefField:
+      type: object
+      required:
+        - page
+      properties:
+        page:
+          type: integer
+          default: 1
+    Item:
+      type: object
+      required:
+        - enum_field
+      properties:
+        enum_field:
+          type: string
+          description: Enumeration field.
+          enum:
+            - first
+            - second
+            - third
+        _metadata:
+          $ref: "#/components/schemas/RefField"
+  responses:
+    ItemResponse:
+      description: General Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Item'
+  parameters:
+    FromPath:
+      name: from_path
+      in: path
+      description: parameter from path
+      required: true
+      schema:
+        type: string
+      style: simple
+  requestBodies:
+    ItemRequest:
+      description: user to add to the system
+      content:
+        'application/json':
+          schema:
+            $ref: '#/components/schemas/Item'
+          examples:
+            item:
+              summary: Item Example
+              description: Item description.
+              externalValue: 'http://examples.com/item.json'
+        'application/xml':
+          schema:
+            $ref: '#/components/schemas/Item'
+          examples:
+            item:
+              summary: Item Example in XML
+              externalValue: 'http://examples.com/item.xml'
+  securitySchemes:
+    http_basic:
+      type: http
+      scheme: basic
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

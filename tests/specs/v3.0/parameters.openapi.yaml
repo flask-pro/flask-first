@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /parameters_endpoint/{from_path}:
+    parameters:
+      - name: from_path
+        in: path
+        description: parameter from path
+        required: true
+        schema:
+          type: string
+        style: simple
+    get:
+      operationId: mini_endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

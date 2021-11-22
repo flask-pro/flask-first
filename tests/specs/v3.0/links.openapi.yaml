@@ -1,0 +1,33 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /links_endpoint/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: links_endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          links:
+            userRepositories:
+              $ref: '#/components/links/LinksEndpoint'
+components:
+  links:
+    LinksEndpoint:
+      operationId: links_endpoint
+      parameters:
+        username: $response.body#/id

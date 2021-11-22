@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /additional_properties_object:
+    get:
+      operationId: additional_properties_object
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                properties:
+                  message:
+                    type: string
+  /additional_properties_bool:
+    get:
+      operationId: additional_properties_bool
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string

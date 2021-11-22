@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: Simple API for testing Flask-First
+  version: 1.0.0
+servers:
+  - description: Test server
+    url: "https://test.flask.first"
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: https
+paths:
+  /items:
+    get:
+      tags:
+        - items
+      operationId: items_list
+      summary: Returns a list of items
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsList"
+    post:
+      tags:
+        - items
+      operationId: create_item
+      summary: Create item
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemNew"
+        required: true
+  /items/{uuid}:
+    parameters:
+      - $ref: "#/components/parameters/uuid"
+    get:
+      tags:
+        - items
+      operationId: get_item
+      summary: Get item
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
+    put:
+      tags:
+        - items
+      operationId: update_item
+      summary: Update item
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Item"
+    delete:
+      tags:
+        - items
+      operationId: delete_item
+      summary: Delete item
+      responses:
+        "204":
+          description: OK
+  /get_path_params/{path_str}/{path_int}/{path_float}:
+    parameters:
+      - $ref: "#/components/parameters/path_str"
+      - $ref: "#/components/parameters/path_int"
+      - name: path_float
+        in: path
+        required: true
+        schema:
+          type: number
+          minimum: 1.2
+          maximum: 10.2
+    get:
+      tags:
+        - items
+      operationId: get_path_params
+      summary: Get item
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemPathParameters"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
+        "500":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
+  /first:
+    get:
+      tags:
+        - items
+      operationId: first
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /second:
+    get:
+      tags:
+        - items
+      operationId: second
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+  /bad_response:
+    get:
+      tags:
+        - items
+      operationId: bad_response
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "500":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
+  /items_args:
+    get:
+      tags:
+        - items
+      operationId: items_args
+      summary: Returns args of items
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - $ref: "#/components/parameters/per_page"
+        - $ref: "#/components/parameters/page_list"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemArgs"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
+components:
+  parameters:
+    uuid:
+      name: uuid
+      in: path
+      description: uuid объекта.
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: 789d995f-3aa0-4bf8-a37b-2f2f2086d503
+    per_page:
+      name: per_page
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        example: 1
+    page_list:
+      name: page_list
+      in: query
+      description: Page list
+      schema:
+        type: array
+        items:
+          type: string
+    path_str:
+      name: path_str
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 10
+    path_int:
+      name: path_int
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+  schemas:
+    ERROR:
+      type: object
+      required:
+        - code
+        - name
+        - description
+      additionalProperties: false
+      properties:
+        code:
+          type: integer
+          minimum: 400
+          maximum: 599
+          example: 400
+        name:
+          type: string
+          example: "Bad Request"
+        description:
+          type: string
+          example: "Request data not valid."
+    UUID:
+      type: string
+      format: uuid
+      example: 789d995f-3aa0-4bf8-a77b-2f2f20868503
+    ItemNew:
+      type: object
+      required:
+        - name
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          example: "user"
+        description:
+          type: string
+          example: "user"
+    Message:
+      type: object
+      required:
+        - message
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          example: "Message from API."
+    ItemArgs:
+      type: object
+      required:
+        - page
+        - per_page
+      additionalProperties: false
+      properties:
+        page:
+          type: integer
+          example: 1
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          example: 5
+        page_list:
+          type: array
+          items:
+            type: string
+    Item:
+      type: object
+      required:
+        - uuid
+        - name
+      additionalProperties: false
+      properties:
+        uuid:
+          $ref: "#/components/schemas/UUID"
+        name:
+          type: string
+          description: "Name item"
+          example: "user"
+          default: "user"
+        description:
+          type: string
+          example: "user"
+    ItemsList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Item"
+    ItemPathParameters:
+      type: object
+      required:
+        - path_str
+        - path_int
+        - path_float
+      additionalProperties: false
+      properties:
+        path_str:
+          type: string
+        path_int:
+          type: integer
+        path_float:
+          type: number
+  securitySchemes:
+    basic:
+      type: http
+      scheme: basic
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: items
+    description: Test endpoints.

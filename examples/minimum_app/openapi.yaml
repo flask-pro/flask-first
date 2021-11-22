@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Simple API for Flask-First
+  version: 1.0.0
+paths:
+  /{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: index
+      summary: Returns a list of items
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

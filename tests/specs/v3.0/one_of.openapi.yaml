@@ -1,0 +1,33 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /one_of_endpoint:
+    get:
+      operationId: one_of_endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObjectSchema"
+components:
+  schemas:
+    ObjectSchema:
+      oneOf:
+        - $ref: '#/components/schemas/NewObjectSchema'
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+    NewObjectSchema:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string

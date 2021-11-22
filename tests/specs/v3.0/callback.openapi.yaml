@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /callback_test_endpoint:
+    post:
+      parameters:
+        - name: callback_url
+          in: query
+          required: true
+          description: Asynchronic response URL.
+          schema:
+            type: string
+      operationId: callback_test_endpoint
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      callbacks:
+        async_response:
+          '{$request.query.callback_url}/callback':
+            post:
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        result:
+                          type: boolean
+              responses:
+                '202':
+                  description: HTTP status code if the data was received.

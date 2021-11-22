@@ -1,0 +1,9 @@
+flask==2.0.2
+pytest==6.2.5
+pytest-cov==3.0.0
+pre-commit==2.15.0
+pyyaml==6.0
+openapi-spec-validator==0.3.1
+marshmallow==3.14.1
+build==0.7.0
+twine==3.6.0

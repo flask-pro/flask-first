@@ -197,3 +197,26 @@ def test_specification__headers():
         r = test_client.get('/endpoint_with_header', headers={'Name': 'test_header'})
         assert r.status_code == 200
         assert r.json['message'] == 'test_header'
+
+
+def test_specification__factory_app():
+    first = First(Path('specs/v3.0/mini.openapi.yaml'))
+
+    def create_app():
+        app = Flask("factory_app")
+        app.debug = 1
+        app.testing = 1
+        app.config['FIRST_RESPONSE_VALIDATION'] = True
+        first.init_app(app)
+        return app
+
+    app = create_app()
+
+    @app.specification
+    def mini_endpoint() -> dict:
+        return {'message': 'test_factory_app'}
+
+    with app.test_client() as test_client:
+        r = test_client.get('/mini_endpoint')
+        assert r.status_code == 200
+        assert r.json['message'] == 'test_factory_app'

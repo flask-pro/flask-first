@@ -1,4 +1,7 @@
 """Flask extension for using “specification first” principle."""
+from pathlib import Path
+from typing import Union
+
 from flask import Flask
 from flask import Request
 from flask import request
@@ -16,13 +19,13 @@ from .spec_parser import Specification
 from .validators import validate_json
 from .validators import validate_params
 
-__version__ = '0.5.0'
+__version__ = 'devel'
 
 
 class First:
     """This class is used to generation routes from OpenAPI specification."""
 
-    def __init__(self, path_to_spec: str, app: Flask = None) -> None:
+    def __init__(self, path_to_spec: Union[str, Path], app: Flask = None) -> None:
         self.app = app
         self.path_to_spec = path_to_spec
 
@@ -167,13 +170,14 @@ class First:
                 raise FlaskFirstResponseValidation(e)
 
     def init_app(self, app: Flask) -> None:
-        app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
-        register_errors(app)
-        app.specification = self.mapping
+        self.app = app
+        self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
+        register_errors(self.app)
+        self.app.specification = self.mapping
 
         self._register_before_request_validation()
 
-        if app.config['FIRST_RESPONSE_VALIDATION']:
+        if self.app.config['FIRST_RESPONSE_VALIDATION']:
             self._register_after_request_validation()
 
     def mapping(self, func) -> None:

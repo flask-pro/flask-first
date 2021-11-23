@@ -19,7 +19,7 @@ from .spec_parser import Specification
 from .validators import validate_json
 from .validators import validate_params
 
-__version__ = 'devel'
+__version__ = '0.5.1'
 
 
 class First:

@@ -3,6 +3,7 @@ import os
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
+
 from src.flask_first import First
 
 basedir = os.path.abspath(os.path.dirname(__file__))

@@ -1,4 +1,5 @@
 from flask import Flask
+
 from src.flask_first import First
 
 

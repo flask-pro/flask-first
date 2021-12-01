@@ -8,6 +8,11 @@ repos:
     rev: v4.0.1
     hooks:
       - id: check-ast
+      - id: fix-byte-order-marker
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-builtin-literals
       - id: requirements-txt-fixer
   - repo: https://github.com/psf/black
     rev: 21.11b1
@@ -25,16 +30,6 @@ repos:
       - id: python-no-eval
       - id: text-unicode-replacement-char
         exclude: '.js$'
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
-    hooks:
-      - id: check-ast
-      - id: fix-byte-order-marker
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
-      - id: check-yaml
-      - id: check-builtin-literals
-      - id: requirements-txt-fixer
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.2
     hooks:

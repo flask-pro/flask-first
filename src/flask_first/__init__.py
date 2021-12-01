@@ -2,10 +2,14 @@
 from pathlib import Path
 from typing import Union
 
+from flask import Blueprint
 from flask import Flask
+from flask import render_template
 from flask import Request
 from flask import request
 from flask import Response
+from flask import send_file
+from flask import url_for
 from werkzeug.datastructures import MultiDict
 
 from .exc import FlaskFirstArgsValidation
@@ -19,15 +23,21 @@ from .spec_parser import Specification
 from .validators import validate_json
 from .validators import validate_params
 
-__version__ = '0.5.1'
+__version__ = '0.6.0'
 
 
 class First:
     """This class is used to generation routes from OpenAPI specification."""
 
-    def __init__(self, path_to_spec: Union[str, Path], app: Flask = None) -> None:
+    def __init__(
+        self,
+        path_to_spec: Union[str, Path],
+        app: Flask = None,
+        swagger_ui_path: Union[str, Path] = None,
+    ) -> None:
         self.app = app
         self.path_to_spec = path_to_spec
+        self.swagger_ui_path = swagger_ui_path
 
         if self.app is not None:
             self.init_app(app)
@@ -116,6 +126,29 @@ class First:
                 rendered_args[key] = value
         return rendered_args
 
+    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str) -> None:
+        swagger_ui = Blueprint(
+            'swagger_ui',
+            __name__,
+            static_folder='static',
+            template_folder='templates',
+            url_prefix=swagger_ui_path,
+        )
+
+        @swagger_ui.add_app_template_global
+        def swagger_ui_static(filename):
+            return url_for("swagger_ui.static", filename=filename)
+
+        @swagger_ui.route('/')
+        def swagger_ui_page():
+            return render_template('swagger_ui/index.html', path_to_spec=self.path_to_spec)
+
+        @swagger_ui.route('/openapi.yaml')
+        def get_file_spec():
+            return send_file(self.path_to_spec)
+
+        self.app.register_blueprint(swagger_ui)
+
     def _register_before_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
@@ -174,6 +207,9 @@ class First:
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
         register_errors(self.app)
         self.app.specification = self.mapping
+
+        if self.swagger_ui_path:
+            self._registration_swagger_ui_blueprint(self.swagger_ui_path)
 
         self._register_before_request_validation()
 

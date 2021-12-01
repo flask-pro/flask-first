@@ -10,6 +10,7 @@ Features:
 * Validating arguments from url.
 * Validating JSON from request.
 * Validating JSON from response.
+* Provides a Swagger UI.
 
 ----
 
@@ -75,7 +76,7 @@ path_to_spec = os.path.join(basedir, 'openapi.yaml')
 
 app = Flask(__name__)
 app.config['FIRST_RESPONSE_VALIDATION'] = True
-First(path_to_spec, app)
+First(path_to_spec, app=app, swagger_ui_path='/docs')
 
 
 @app.specification
@@ -93,7 +94,7 @@ Run application:
 $ python main.py
 ```
 
-Check url in browser `http://127.0.0.1:5000/username`.
+Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in browser `http://127.0.0.1:5000/docs`.
 
 ## Settings
 

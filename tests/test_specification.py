@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 from flask import Flask
+from flask import request
 
 from src.flask_first import First
 from src.flask_first import Specification
@@ -47,3 +48,19 @@ def test_specification__check_v30_specs(spec):
     r = app.test_client().get('/docs', follow_redirects=True)
     assert r.status_code == 200
     assert '/docs/openapi.yaml' in r.data.decode()
+
+
+def test_specification__nullable_parameter():
+    app = Flask('testing_app')
+    app.debug = True
+    app.config['FIRST_RESPONSE_VALIDATION'] = True
+    full_spec = Path('specs/v3.0/nullable.openapi.yaml')
+    First(full_spec, app)
+
+    @app.specification
+    def nullable_endpoint() -> dict:
+        return {'message': request.json['message']}
+
+    r = app.test_client().post('/nullable_endpoint', json={'message': None})
+    assert r.status_code == 200
+    assert r.json == {'message': None}

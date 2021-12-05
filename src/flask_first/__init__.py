@@ -23,7 +23,7 @@ from .spec_parser import Specification
 from .validators import validate_json
 from .validators import validate_params
 
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 
 
 class First:
@@ -179,7 +179,7 @@ class First:
                     'requestBody'
                 ]['content'][request.content_type]['schema']
                 try:
-                    request.first_json = validate_json(request.json, json_request_schema)
+                    validate_json(request.json, json_request_schema)
                 except FlaskFirstValidation as e:
                     raise FlaskFirstJSONValidation(str(e))
 

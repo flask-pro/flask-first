@@ -61,6 +61,9 @@ def _make_field_for_schema(schema: dict) -> Field:
 
         field.validators = validators
 
+    if schema.get('nullable'):
+        field.allow_none = True
+
     return field
 
 

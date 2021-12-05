@@ -103,6 +103,6 @@ developing. May be disabled in a production environment.
 
 ## Additional documentation
 
-* [OpenAPI Documentation](<https://swagger.io/specification/>).
-* [OpenAPI on GitHub](<https://github.com/OAI/OpenAPI-Specification>).
-* [JSON Schema Documentation](<https://json-schema.org/specification.html>).
+* [OpenAPI Documentation](https://swagger.io/specification/).
+* [OpenAPI on GitHub](https://github.com/OAI/OpenAPI-Specification).
+* [JSON Schema Documentation](https://json-schema.org/specification.html).

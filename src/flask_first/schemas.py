@@ -167,6 +167,7 @@ class SchemaObjectSchema(BaseSchema):
     description = description
     default = fields.Raw()
     enum = enum
+    nullable = fields.Boolean()
 
     @validates_schema
     def validate_additional_properties_field(self, data, **kwargs):

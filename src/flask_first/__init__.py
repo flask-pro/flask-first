@@ -125,7 +125,7 @@ class First:
                 rendered_args[key] = value
         return rendered_args
 
-    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str) -> None:
+    def _registration_swagger_ui_blueprint(self, swagger_ui_path: Union[str, Path]) -> None:
         swagger_ui = Blueprint(
             'swagger_ui',
             __name__,

@@ -17,6 +17,5 @@ def index(name):
 
 first.add_view_func(index)
 
-
 if __name__ == '__main__':
     app.run()

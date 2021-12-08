@@ -1,4 +1,4 @@
-"""The module contains Marshmellow schemas for serializing the specification."""
+"""The module contains Marshmallow schemas for serializing the specification."""
 from typing import Any
 
 from marshmallow import fields

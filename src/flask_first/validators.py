@@ -1,6 +1,5 @@
 from typing import Iterable
 from typing import List
-from typing import Optional
 from typing import Union
 
 from marshmallow import fields
@@ -105,7 +104,7 @@ def validate_params(parameters: dict, schema: Union[dict, List[dict]]) -> dict:
         raise FlaskFirstPathParameterValidation(e)
 
 
-def validate_json(json: Union[dict, List[dict]], schema: dict) -> Optional[FlaskFirstValidation]:
+def validate_json(json: Union[dict, List[dict]], schema: dict) -> None:
     try:
         if isinstance(json, list):
             new_schema = _make_json_schema(schema['items'])

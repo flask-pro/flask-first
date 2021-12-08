@@ -8,13 +8,14 @@ path_to_spec = os.path.join(basedir, 'openapi.yaml')
 
 app = Flask(__name__)
 app.config['FIRST_RESPONSE_VALIDATION'] = True
-First(path_to_spec, app=app, swagger_ui_path='/docs')
+first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
 
-@app.specification
 def index(name):
     return {'message': name}
 
+
+first.add_view_func(index)
 
 if __name__ == '__main__':
     app.run()

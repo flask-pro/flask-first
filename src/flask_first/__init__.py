@@ -23,7 +23,7 @@ from .spec_parser import Specification
 from .validators import validate_json
 from .validators import validate_params
 
-__version__ = '0.7.0'
+__version__ = '0.8.0'
 
 
 class First:
@@ -51,8 +51,7 @@ class First:
         return route.replace('<', '{').replace('>', '}').replace('int:', '').replace('float:', '')
 
     def _route_registration_in_flask(self, func: callable) -> None:
-        route = None
-        route_method = None
+        route = route_method = ''
 
         for path, path_item in self.spec.serialized['paths'].items():
             for method, operation in path_item.items():
@@ -126,7 +125,7 @@ class First:
                 rendered_args[key] = value
         return rendered_args
 
-    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str) -> None:
+    def _registration_swagger_ui_blueprint(self, swagger_ui_path: Union[str, Path]) -> None:
         swagger_ui = Blueprint(
             'swagger_ui',
             __name__,
@@ -206,7 +205,7 @@ class First:
         self.app = app
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
         register_errors(self.app)
-        self.app.specification = self.mapping
+        self.app.extensions['first'] = self
 
         if self.swagger_ui_path:
             self._registration_swagger_ui_blueprint(self.swagger_ui_path)
@@ -216,5 +215,5 @@ class First:
         if self.app.config['FIRST_RESPONSE_VALIDATION']:
             self._register_after_request_validation()
 
-    def mapping(self, func) -> None:
+    def add_view_func(self, func) -> None:
         self._route_registration_in_flask(func)

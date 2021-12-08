@@ -4,7 +4,6 @@ Flask extension for using "specification first" principle.
 
 Features:
 
-* Decorator for mapping routes from OpenAPI specification on Python's view functions via Flask.
 * `Application Factory` supported.
 * Validating path parameters from url.
 * Validating arguments from url.

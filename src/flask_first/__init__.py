@@ -206,7 +206,7 @@ class First:
         self.app = app
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
         register_errors(self.app)
-        self.app.specification = self.mapping
+        self.app.extensions['first'] = self
 
         if self.swagger_ui_path:
             self._registration_swagger_ui_blueprint(self.swagger_ui_path)

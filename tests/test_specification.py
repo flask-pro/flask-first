@@ -19,7 +19,7 @@ def test_specification__bad_response(fx_app, fx_client):
     def bad_response() -> dict:
         return {'message': 'OK', 'non_exist_field': 'BAD'}
 
-    fx_app.extensions['first'].mapping(bad_response)
+    fx_app.extensions['first'].add_view_func(bad_response)
 
     fx_app.debug = 0
     fx_app.testing = 0
@@ -57,7 +57,7 @@ def test_specification__nullable_parameter():
     def nullable_endpoint() -> dict:
         return {'message': request.json['message']}
 
-    first.mapping(nullable_endpoint)
+    first.add_view_func(nullable_endpoint)
 
     r = app.test_client().post('/nullable_endpoint', json={'message': None})
     assert r.status_code == 200

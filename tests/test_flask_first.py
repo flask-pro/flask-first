@@ -21,7 +21,7 @@ def test_specification__create_item(fx_app, fx_client):
         obj = {**request.json, 'uuid': ITEM['uuid']}
         return jsonify(obj), 201
 
-    fx_app.extensions['first'].mapping(create_item)
+    fx_app.extensions['first'].add_view_func(create_item)
 
     r_get = fx_client.post(
         '/items', json={'name': ITEM['name'], 'description': ITEM['description']}
@@ -37,7 +37,7 @@ def test_specification__items_list(fx_app, fx_client):
     def items_list() -> Response:
         return jsonify([ITEM])
 
-    fx_app.extensions['first'].mapping(items_list)
+    fx_app.extensions['first'].add_view_func(items_list)
 
     r_get = fx_client.get('/items')
     assert r_get.status_code == 200
@@ -55,7 +55,7 @@ def test_specification__args(fx_app, fx_client):
             'page_list': request.first_args['page_list'],
         }
 
-    fx_app.extensions['first'].mapping(items_args)
+    fx_app.extensions['first'].add_view_func(items_args)
 
     args = {'page': 1, 'per_page': 10, 'page_list': ['first', 'second']}
     r_get = fx_client.get('/items_args', query_string=args)
@@ -68,7 +68,7 @@ def test_specification__add_route_with_path_parameters(fx_app, fx_client):
         item = {**ITEM, **{'uuid': uuid}}
         return jsonify(item)
 
-    fx_app.extensions['first'].mapping(get_item)
+    fx_app.extensions['first'].add_view_func(get_item)
 
     item_uuid = '789d995f-3aa0-4bf8-a37b-2f2f2086d504'
     r_get = fx_client.get(f'/items/{item_uuid}')
@@ -82,7 +82,7 @@ def test_specification__bad_uuid_from_path_params(fx_app, fx_client, path_param)
         item = {**ITEM, **{'uuid': uuid}}
         return jsonify(item)
 
-    fx_app.extensions['first'].mapping(get_item)
+    fx_app.extensions['first'].add_view_func(get_item)
 
     r_get = fx_client.get(f'/items/{path_param}')
     assert r_get.status_code == 400
@@ -98,7 +98,7 @@ def test_specification__all_type_url_parameters(fx_app, fx_client):
         item = {'path_str': path_str, 'path_int': path_int, 'path_float': path_float}
         return jsonify(item)
 
-    fx_app.extensions['first'].mapping(get_path_params)
+    fx_app.extensions['first'].add_view_func(get_path_params)
 
     path_params = {'path_str': 'test_str', 'path_int': 2, 'path_float': 2.3}
     r_get = fx_client.get(
@@ -117,8 +117,8 @@ def test_specification__multiple_routes(fx_app, fx_client):
     def second() -> dict:
         return {'message': 'OK'}
 
-    fx_app.extensions['first'].mapping(first)
-    fx_app.extensions['first'].mapping(second)
+    fx_app.extensions['first'].add_view_func(first)
+    fx_app.extensions['first'].add_view_func(second)
 
     assert fx_client.get('/first').status_code == 200
     assert fx_client.get('/second').status_code == 200
@@ -135,7 +135,7 @@ def test_specification__all_of():
     def all_of_endpoint() -> dict:
         return {'id': '1', 'name': 'Test_name'}
 
-    first.mapping(all_of_endpoint)
+    first.add_view_func(all_of_endpoint)
 
     with app.test_client() as test_client:
         assert test_client.get('/all_of_endpoint').status_code == 200
@@ -152,7 +152,7 @@ def test_specification__one_of():
     def one_of_endpoint() -> dict:
         return {'name': 'Test_name'}
 
-    first.mapping(one_of_endpoint)
+    first.add_view_func(one_of_endpoint)
 
     with app.test_client() as test_client:
         assert test_client.get('/one_of_endpoint').status_code == 200
@@ -169,7 +169,7 @@ def test_specification__any_of():
     def any_of_endpoint() -> dict:
         return {'id': '1'}
 
-    first.mapping(any_of_endpoint)
+    first.add_view_func(any_of_endpoint)
 
     with app.test_client() as test_client:
         assert test_client.get('/any_of_endpoint').status_code == 200
@@ -204,7 +204,7 @@ def test_specification__headers():
     def endpoint_with_header() -> dict:
         return {'message': request.headers['Name']}
 
-    first.mapping(endpoint_with_header)
+    first.add_view_func(endpoint_with_header)
 
     with app.test_client() as test_client:
         r = test_client.get('/endpoint_with_header', headers={'Name': 'test_header'})
@@ -224,7 +224,7 @@ def test_specification__factory_app():
         app.testing = 1
         app.config['FIRST_RESPONSE_VALIDATION'] = True
         first.init_app(app)
-        first.mapping(mini_endpoint)
+        first.add_view_func(mini_endpoint)
         return app
 
     app = create_app()
@@ -247,7 +247,7 @@ def test_specification__registration_function():
         app.testing = 1
         app.config['FIRST_RESPONSE_VALIDATION'] = True
         first.init_app(app)
-        first.mapping(mini_endpoint)
+        first.add_view_func(mini_endpoint)
         return app
 
     app = create_app()

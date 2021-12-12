@@ -125,7 +125,7 @@ def test_specification__multiple_routes(fx_app, fx_client):
 
 
 def test_specification__all_of():
-    app = Flask("testing_all_of")
+    app = Flask('testing_all_of')
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -142,7 +142,7 @@ def test_specification__all_of():
 
 
 def test_specification__one_of():
-    app = Flask("testing_one_of")
+    app = Flask('testing_one_of')
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -159,7 +159,7 @@ def test_specification__one_of():
 
 
 def test_specification__any_of():
-    app = Flask("testing_any_of")
+    app = Flask('testing_any_of')
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -176,7 +176,7 @@ def test_specification__any_of():
 
 
 def test_specification__not_registered_endpoint():
-    app = Flask("not_registered_endpoint")
+    app = Flask('not_registered_endpoint')
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -194,7 +194,7 @@ def test_specification__not_registered_endpoint():
 
 
 def test_specification__headers():
-    app = Flask("endpoint_with_header")
+    app = Flask('endpoint_with_header')
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -219,7 +219,7 @@ def test_specification__factory_app():
     first = First(Path('specs/v3.0/mini.openapi.yaml'))
 
     def create_app():
-        app = Flask("factory_app")
+        app = Flask('factory_app')
         app.debug = 1
         app.testing = 1
         app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -242,7 +242,7 @@ def test_specification__registration_function():
     first = First(Path('specs/v3.0/mini.openapi.yaml'))
 
     def create_app():
-        app = Flask("factory_app")
+        app = Flask('factory_app')
         app.debug = 1
         app.testing = 1
         app.config['FIRST_RESPONSE_VALIDATION'] = True
@@ -256,3 +256,26 @@ def test_specification__registration_function():
         r = test_client.get('/mini_endpoint')
         assert r.status_code == 200
         assert r.json['message'] == 'test_factory_app'
+
+
+def test_specification__response_obj():
+    def mini_endpoint() -> dict:
+        return {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}
+
+    first = First(Path('specs/v3.0/object.openapi.yaml'))
+
+    def create_app():
+        app = Flask('object_app')
+        app.debug = 1
+        app.testing = 1
+        app.config['FIRST_RESPONSE_VALIDATION'] = True
+        first.init_app(app)
+        first.add_view_func(mini_endpoint)
+        return app
+
+    app = create_app()
+
+    with app.test_client() as test_client:
+        r = test_client.get('/mini_endpoint')
+        assert r.status_code == 200
+        assert r.json == {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}

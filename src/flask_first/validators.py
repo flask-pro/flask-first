@@ -31,34 +31,57 @@ FIELDS_VIA_FORMATS = {
 }
 
 
+def _make_object_field(schema: dict) -> Field:
+    fields_for_nested_schema = {}
+    for field_name, field_schema in schema['properties'].items():
+        field = _make_field_for_schema(field_schema)
+
+        if field_name in schema.get('required', ()):
+            field.required = True
+
+        fields_for_nested_schema[field_name] = field
+
+    schema_object = Schema.from_dict(fields_for_nested_schema)
+    return fields.Nested(schema_object)
+
+
+def _make_array_field(schema: dict) -> Field:
+    if schema['items']['type_'] == 'object':
+        nested_field = _make_field_for_schema(schema['items'])
+        nested_field.many = True
+        field = nested_field
+    else:
+        nested_field = FIELDS_VIA_TYPES[schema['items']['type_']]
+        field = fields.List(nested_field)
+
+    return field
+
+
+def _make_field_validators(schema: dict) -> List[validate.Validator]:
+    validators = []
+
+    if schema['type_'] in ['string']:
+        validators.append(validate.Length(min=schema.get('minLength'), max=schema.get('maxLength')))
+        validators.append(validate.Regexp(schema.get('pattern', r'^.*$')))
+
+    if schema['type_'] in ['integer', 'number']:
+        validators.append(validate.Range(min=schema.get('minimum'), max=schema.get('maximum')))
+
+    return validators
+
+
 def _make_field_for_schema(schema: dict) -> Field:
     if schema.get('format'):
         field = FIELDS_VIA_FORMATS[schema['format']]
     else:
-        if schema['type_'] == 'array':
-            if schema['items']['type_'] == 'object':
-                nested_field = _make_json_schema(schema['items'])
-                field = fields.Nested(nested_field, many=True)
-            else:
-                nested_field = FIELDS_VIA_TYPES[schema['items']['type_']]
-                field = fields.List(nested_field)
+        if schema['type_'] == 'object':
+            field = _make_object_field(schema)
+        elif schema['type_'] == 'array':
+            field = _make_array_field(schema)
         else:
             field = FIELDS_VIA_TYPES[schema['type_']]
 
-        validators = []
-
-        if schema['type_'] in ['string']:
-            validators.append(
-                validate.Length(min=schema.get('minLength'), max=schema.get('maxLength'))
-            )
-
-        if schema['type_'] in ['string']:
-            validators.append(validate.Regexp(schema.get('pattern', r'^.*$')))
-
-        if schema['type_'] in ['integer', 'number']:
-            validators.append(validate.Range(min=schema.get('minimum'), max=schema.get('maximum')))
-
-        field.validators = validators
+        field.validators = _make_field_validators(schema)
 
     if schema.get('nullable'):
         field.allow_none = True
@@ -67,17 +90,17 @@ def _make_field_for_schema(schema: dict) -> Field:
 
 
 def _make_json_schema(schema: dict) -> type:
-    fields = {}
+    fields_for_generating = {}
     for field_name, field_schema in schema['properties'].items():
-        field_to_schema = _make_field_for_schema(field_schema)
+        generated_field = _make_field_for_schema(field_schema)
 
         if schema.get('required'):
             if field_name in schema['required']:
-                field_to_schema.required = True
+                generated_field.required = True
 
-        fields[field_name] = field_to_schema
+        fields_for_generating[field_name] = generated_field
 
-    return Schema.from_dict(fields)
+    return Schema.from_dict(fields_for_generating)
 
 
 def _make_parameter_schema(keys: Iterable, parameters: dict) -> type:
@@ -91,9 +114,7 @@ def _make_parameter_schema(keys: Iterable, parameters: dict) -> type:
         field = _make_field_for_schema(schema)
         schema_fields[key] = field
 
-    marshmallow_schema = Schema.from_dict(schema_fields)
-
-    return marshmallow_schema
+    return Schema.from_dict(schema_fields)
 
 
 def validate_params(parameters: dict, schema: Union[dict, List[dict]]) -> dict:

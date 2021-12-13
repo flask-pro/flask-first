@@ -23,7 +23,7 @@ from .spec_parser import Specification
 from .validators import validate_json
 from .validators import validate_params
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 
 class First:

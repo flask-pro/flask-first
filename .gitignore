@@ -15,6 +15,7 @@ __pycache__/
 .coverage.*
 *.cover
 .pytest_cache/
+.mypy_cache
 
 # IDE and editors.
 .idea/

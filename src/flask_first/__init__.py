@@ -1,5 +1,7 @@
 """Flask extension for using “specification first” principle."""
 from pathlib import Path
+from typing import List
+from typing import Optional
 from typing import Union
 
 from flask import Blueprint
@@ -10,6 +12,12 @@ from flask import request
 from flask import Response
 from flask import send_file
 from flask import url_for
+from jsonschema.exceptions import ValidationError
+from jsonschema.validators import RefResolver
+from openapi_schema_validator import oas30_format_checker
+from openapi_schema_validator import validate
+from openapi_spec_validator import validate_spec
+from openapi_spec_validator.readers import read_from_filename
 from werkzeug.datastructures import MultiDict
 
 from .exc import FlaskFirstArgsValidation
@@ -17,13 +25,10 @@ from .exc import FlaskFirstException
 from .exc import FlaskFirstJSONValidation
 from .exc import FlaskFirstPathParameterValidation
 from .exc import FlaskFirstResponseValidation
-from .exc import FlaskFirstValidation
 from .exc import register_errors
-from .spec_parser import Specification
-from .validators import validate_json
-from .validators import validate_params
+from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.8.1'
+__version__ = '0.9.0'
 
 
 class First:
@@ -42,7 +47,10 @@ class First:
         if self.app is not None:
             self.init_app(app)
 
-        self.spec = Specification(path_to_spec)
+        self.spec, self.spec_url = read_from_filename(path_to_spec)
+        validate_spec(self.spec)
+
+        self.ref_resolver = RefResolver.from_schema(self.spec)
 
         self._mapped_routes_from_spec = []
 
@@ -51,79 +59,108 @@ class First:
         return route.replace('<', '{').replace('>', '}').replace('int:', '').replace('float:', '')
 
     def _route_registration_in_flask(self, func: callable) -> None:
-        route = route_method = ''
+        route = method = ''
 
-        for path, path_item in self.spec.serialized['paths'].items():
-            for method, operation in path_item.items():
-                if method == 'parameters':
+        for path, path_item in self.spec['paths'].items():
+            for method_name, operation in path_item.items():
+                if method_name == 'parameters':
                     continue
                 if operation.get('operationId') == func.__name__:
                     route: str = path
-                    route_method: str = method
+                    method: str = method_name
 
         if not route:
             raise FlaskFirstException(
                 f'Route function <{route}> not found in OpenAPI specification!'
             )
 
-        parameters_schemas = self._extract_params_schemas(method, route)
-        parameters_for_rule = {}
-        for parameter, schema in parameters_schemas.items():
-            if schema['in_'] == 'path':
-                parameters_for_rule.update(
-                    {parameter: f'<{schema["schema"]["type_"]}:{parameter}>'}
-                )
+        _, path_schema, _, _ = self._make_schemas_params(method, route)
 
-        flask_format_rule = route.format(**parameters_for_rule)
-        flask_format_rule = (
-            flask_format_rule.replace('string:', '')
-            .replace('integer:', 'int:')
-            .replace('number:', 'float:')
-        )
-        self.app.add_url_rule(
-            flask_format_rule, func.__name__, func, methods=[route_method.upper()]
-        )
+        if path_schema:
+            path_params = {}
+            for parameter, schema in path_schema['properties'].items():
+                path_params.update({parameter: f'<{schema["type"]}:{parameter}>'})
 
-        self._mapped_routes_from_spec.append(flask_format_rule)
-
-    def _extract_data_from_request(self, request: Request) -> tuple:
-        method = request.method.lower()
-
-        if request.url_rule is not None:
-            route = request.url_rule.rule
+            rule = route.format(**path_params)
+            rule = (
+                rule.replace('string:', '').replace('integer:', 'int:').replace('number:', 'float:')
+            )
         else:
-            route = request.url_rule
+            rule = route
 
-        path_parameters = request.view_args
-        args = request.args
-        json = request.json
+        self.app.add_url_rule(rule, func.__name__, func, methods=[method.upper()])
+
+        self._mapped_routes_from_spec.append(rule)
+
+    def _extract_data_from_request(self, request_obj: Request) -> tuple:
+        method = request_obj.method.lower()
+
+        if request_obj.url_rule is not None:
+            route = request_obj.url_rule.rule
+        else:
+            route = request_obj.url_rule
+
+        path_parameters = request_obj.view_args
+        args = request_obj.args
+        json = request_obj.json
         return method, route, path_parameters, args, json
 
-    def _extract_params_schemas(self, method: str, route: str) -> dict:
-        parameters = {}
+    def _make_schema_params(self, param_type: str, schemas: List[dict]) -> Optional[dict]:
+        properties = {}
+        required = []
+        for schm in schemas:
+            if '$ref' in schm:
+                with self.ref_resolver.resolving(schm['$ref']) as resolved_ref:
+                    schm = resolved_ref
+
+            if schm.get('required') is True:
+                required.append(schm['name'])
+            if schm['in'] == param_type:
+                properties[schm['name']] = schm['schema']
+
+        if properties:
+            schema = {'type': 'object', 'properties': properties}
+            if required:
+                schema['required'] = required
+            return schema
+        else:
+            return None
+
+    def _make_schemas_params(self, method: str, route: str) -> tuple:
+        schemas_params = []
 
         try:
-            if self.spec.serialized['paths'][route].get('parameters'):
-                parameters.update(self.spec.serialized['paths'][route]['parameters'])
+            common_params: dict = self.spec['paths'][route].get('parameters')
+            if common_params:
+                schemas_params.extend(common_params)
         except KeyError:
             raise FlaskFirstException(f'Route <{request.endpoint}> not found in specification!')
 
         try:
-            if self.spec.serialized['paths'][route][method].get('parameters'):
-                parameters.update(self.spec.serialized['paths'][route][method]['parameters'])
+            personal_params: dict = self.spec['paths'][route][method].get('parameters')
+            if personal_params:
+                schemas_params.extend(personal_params)
         except KeyError:
             raise FlaskFirstException(f'Method <{method}> not found in route <{request.endpoint}>!')
 
-        return parameters
+        # Create schema as object from parameters list.
+        headers_schema = self._make_schema_params('header', schemas_params)
+        path_schema = self._make_schema_params('path', schemas_params)
+        args_schema = self._make_schema_params('query', schemas_params)
+        cookie_schema = self._make_schema_params('cookie', schemas_params)
 
-    def _args_to_dict(self, args: MultiDict) -> dict:
+        return headers_schema, path_schema, args_schema, cookie_schema
+
+    def _args_to_dict(self, args: MultiDict, schema: dict) -> dict:
         rendered_args = {}
         for key, value in args.to_dict(flat=False).items():
             if len(value) == 1:
                 rendered_args[key] = value[0]
             if len(value) > 1:
                 rendered_args[key] = value
-        return rendered_args
+
+        marshmallow_schema = make_marshmallow_schema(schema)
+        return marshmallow_schema().load(rendered_args)
 
     def _registration_swagger_ui_blueprint(self, swagger_ui_path: Union[str, Path]) -> None:
         swagger_ui = Blueprint(
@@ -148,7 +185,7 @@ class First:
 
         self.app.register_blueprint(swagger_ui)
 
-    def _register_before_request_validation(self) -> None:
+    def _register_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
             method, route, path_params, args, json = self._extract_data_from_request(request)
@@ -157,32 +194,46 @@ class First:
                 return
 
             route_as_in_spec = self.route_to_openapi_format(route)
-            params_from_schema = self._extract_params_schemas(method, route_as_in_spec)
+            _, path_schema, args_schema, _ = self._make_schemas_params(method, route_as_in_spec)
 
             if path_params:
                 try:
-                    request.first_view_args = validate_params(path_params, params_from_schema)
-                except FlaskFirstValidation as e:
+                    validate(
+                        path_params,
+                        path_schema,
+                        format_checker=oas30_format_checker,
+                        resolver=self.ref_resolver,
+                    )
+                except ValidationError as e:
                     raise FlaskFirstPathParameterValidation(e)
 
             if args:
                 try:
-                    request.first_args = validate_params(
-                        self._args_to_dict(args), params_from_schema
+                    request.first_args = self._args_to_dict(args, args_schema)
+                    validate(
+                        request.first_args,
+                        args_schema,
+                        format_checker=oas30_format_checker,
+                        resolver=self.ref_resolver,
                     )
-                except FlaskFirstValidation as e:
+                except ValidationError as e:
                     raise FlaskFirstArgsValidation(e)
 
             if json:
-                json_request_schema = self.spec.serialized['paths'][route_as_in_spec][method][
-                    'requestBody'
-                ]['content'][request.content_type]['schema']
+                json_request_schema = self.spec['paths'][route_as_in_spec][method]['requestBody'][
+                    'content'
+                ][request.content_type]['schema']
                 try:
-                    validate_json(request.json, json_request_schema)
-                except FlaskFirstValidation as e:
+                    validate(
+                        request.json,
+                        json_request_schema,
+                        format_checker=oas30_format_checker,
+                        resolver=self.ref_resolver,
+                    )
+                except ValidationError as e:
                     raise FlaskFirstJSONValidation(str(e))
 
-    def _register_after_request_validation(self) -> None:
+    def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
             method, route, _, _, _ = self._extract_data_from_request(request)
@@ -191,14 +242,19 @@ class First:
                 return response
 
             route_as_in_spec = self.route_to_openapi_format(route)
-            schema = self.spec.serialized['paths'][route_as_in_spec][method]['responses'][
+            json_response_schema = self.spec['paths'][route_as_in_spec][method]['responses'][
                 str(response.status_code)
             ]['content'][response.content_type]['schema']
 
             try:
-                validate_json(response.json, schema)
+                validate(
+                    response.json,
+                    json_response_schema,
+                    format_checker=oas30_format_checker,
+                    resolver=self.ref_resolver,
+                )
                 return response
-            except FlaskFirstValidation as e:
+            except ValidationError as e:
                 raise FlaskFirstResponseValidation(e)
 
     def init_app(self, app: Flask) -> None:
@@ -210,10 +266,10 @@ class First:
         if self.swagger_ui_path:
             self._registration_swagger_ui_blueprint(self.swagger_ui_path)
 
-        self._register_before_request_validation()
+        self._register_request_validation()
 
         if self.app.config['FIRST_RESPONSE_VALIDATION']:
-            self._register_after_request_validation()
+            self._register_response_validation()
 
     def add_view_func(self, func) -> None:
         self._route_registration_in_flask(func)

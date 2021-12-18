@@ -86,7 +86,7 @@ def test_specification__bad_uuid_from_path_params(fx_app, fx_client, path_param)
 
     r_get = fx_client.get(f'/items/{path_param}')
     assert r_get.status_code == 400
-    assert r_get.json['description'] == "{'uuid': ['Not a valid UUID.']}"
+    assert f"'{path_param}' is not a 'uuid'" in r_get.json['description']
 
 
 def test_specification__all_type_url_parameters(fx_app, fx_client):
@@ -133,7 +133,7 @@ def test_specification__all_of():
     first = First(full_spec, app)
 
     def all_of_endpoint() -> dict:
-        return {'id': '1', 'name': 'Test_name'}
+        return {'id': 1, 'name': 'Test_name'}
 
     first.add_view_func(all_of_endpoint)
 
@@ -167,7 +167,7 @@ def test_specification__any_of():
     first = First(full_spec, app)
 
     def any_of_endpoint() -> dict:
-        return {'id': '1'}
+        return {'id': 1}
 
     first.add_view_func(any_of_endpoint)
 

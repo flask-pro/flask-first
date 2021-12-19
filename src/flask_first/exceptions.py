@@ -6,57 +6,53 @@ from flask import make_response
 from flask import Response
 
 
-class FlaskFirstException(Exception):
+class FirstException(Exception):
     """Common exception."""
 
 
-class FlaskFirstSpecificationValidation(FlaskFirstException):
+class FirstOpenAPIValidation(FirstException):
     """Exception for specification validation error."""
 
 
-class FlaskFirstValidation(FlaskFirstException):
+class FirstValidation(FirstException):
     """Exception for request validation error."""
 
 
-class FlaskFirstPathParameterValidation(FlaskFirstValidation):
+class FirstRequestPathParamValidation(FirstValidation):
     """Exception for path-parameters validation error."""
 
 
-class FlaskFirstArgsValidation(FlaskFirstValidation):
+class FirstRequestArgsValidation(FirstValidation):
     """Exception for path-parameters validation error."""
 
 
-class FlaskFirstJSONValidation(FlaskFirstValidation):
+class FirstRequestJSONValidation(FirstValidation):
     """Exception for JSON validation error."""
 
 
-class FlaskFirstRequestValidation(FlaskFirstValidation):
-    """Exception for request validation error."""
-
-
-class FlaskFirstResponseValidation(FlaskFirstValidation):
+class FirstResponseJSONValidation(FirstValidation):
     """Exception for response validation error."""
 
 
 def register_errors(app: Flask) -> None:
     """Registering handlers for common errors."""
 
-    @app.errorhandler(FlaskFirstPathParameterValidation)
+    @app.errorhandler(FirstRequestPathParamValidation)
     def path_parameter_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
         return make_response(jsonify(code=400, name='Bad Request', description=str(exc)), 400)
 
-    @app.errorhandler(FlaskFirstArgsValidation)
+    @app.errorhandler(FirstRequestArgsValidation)
     def args_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
         return make_response(jsonify(code=400, name='Bad Request', description=str(exc)), 400)
 
-    @app.errorhandler(FlaskFirstJSONValidation)
+    @app.errorhandler(FirstRequestJSONValidation)
     def json_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
         return make_response(jsonify(code=400, name='Bad Request', description=str(exc)), 400)
 
-    @app.errorhandler(FlaskFirstResponseValidation)
+    @app.errorhandler(FirstResponseJSONValidation)
     def response_validation_exception(exc) -> Response:
         current_app.logger.error(exc)
         return make_response(

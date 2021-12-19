@@ -17,15 +17,17 @@ from jsonschema.validators import RefResolver
 from openapi_schema_validator import oas30_format_checker
 from openapi_schema_validator import validate
 from openapi_spec_validator import validate_spec
+from openapi_spec_validator.exceptions import OpenAPIValidationError
 from openapi_spec_validator.readers import read_from_filename
 from werkzeug.datastructures import MultiDict
 
-from .exc import FlaskFirstArgsValidation
-from .exc import FlaskFirstException
-from .exc import FlaskFirstJSONValidation
-from .exc import FlaskFirstPathParameterValidation
-from .exc import FlaskFirstResponseValidation
-from .exc import register_errors
+from .exceptions import FirstException
+from .exceptions import FirstOpenAPIValidation
+from .exceptions import FirstRequestArgsValidation
+from .exceptions import FirstRequestJSONValidation
+from .exceptions import FirstRequestPathParamValidation
+from .exceptions import FirstResponseJSONValidation
+from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
 __version__ = '0.9.0'
@@ -47,8 +49,11 @@ class First:
         if self.app is not None:
             self.init_app(app)
 
-        self.spec, self.spec_url = read_from_filename(path_to_spec)
-        validate_spec(self.spec)
+        self.spec, _ = read_from_filename(path_to_spec)
+        try:
+            validate_spec(self.spec)
+        except OpenAPIValidationError as e:
+            raise FirstOpenAPIValidation(repr(e))
 
         self.ref_resolver = RefResolver.from_schema(self.spec)
 
@@ -70,9 +75,7 @@ class First:
                     method: str = method_name
 
         if not route:
-            raise FlaskFirstException(
-                f'Route function <{route}> not found in OpenAPI specification!'
-            )
+            raise FirstException(f'Route function <{route}> not found in OpenAPI specification!')
 
         _, path_schema, _, _ = self._make_schemas_params(method, route)
 
@@ -108,21 +111,21 @@ class First:
     def _make_schema_params(self, param_type: str, schemas: List[dict]) -> Optional[dict]:
         properties = {}
         required = []
-        for schm in schemas:
-            if '$ref' in schm:
-                with self.ref_resolver.resolving(schm['$ref']) as resolved_ref:
-                    schm = resolved_ref
+        for schema in schemas:
+            if '$ref' in schema:
+                with self.ref_resolver.resolving(schema['$ref']) as resolved_schema:
+                    schema = resolved_schema
 
-            if schm.get('required') is True:
-                required.append(schm['name'])
-            if schm['in'] == param_type:
-                properties[schm['name']] = schm['schema']
+            if schema.get('required') is True:
+                required.append(schema['name'])
+            if schema['in'] == param_type:
+                properties[schema['name']] = schema['schema']
 
         if properties:
-            schema = {'type': 'object', 'properties': properties}
+            new_schema = {'type': 'object', 'properties': properties}
             if required:
-                schema['required'] = required
-            return schema
+                new_schema['required'] = required
+            return new_schema
         else:
             return None
 
@@ -134,14 +137,14 @@ class First:
             if common_params:
                 schemas_params.extend(common_params)
         except KeyError:
-            raise FlaskFirstException(f'Route <{request.endpoint}> not found in specification!')
+            raise FirstException(f'Route <{request.endpoint}> not found in specification!')
 
         try:
             personal_params: dict = self.spec['paths'][route][method].get('parameters')
             if personal_params:
                 schemas_params.extend(personal_params)
         except KeyError:
-            raise FlaskFirstException(f'Method <{method}> not found in route <{request.endpoint}>!')
+            raise FirstException(f'Method <{method}> not found in route <{request.endpoint}>!')
 
         # Create schema as object from parameters list.
         headers_schema = self._make_schema_params('header', schemas_params)
@@ -205,7 +208,7 @@ class First:
                         resolver=self.ref_resolver,
                     )
                 except ValidationError as e:
-                    raise FlaskFirstPathParameterValidation(e)
+                    raise FirstRequestPathParamValidation(e)
 
             if args:
                 try:
@@ -217,7 +220,7 @@ class First:
                         resolver=self.ref_resolver,
                     )
                 except ValidationError as e:
-                    raise FlaskFirstArgsValidation(e)
+                    raise FirstRequestArgsValidation(e)
 
             if json:
                 json_request_schema = self.spec['paths'][route_as_in_spec][method]['requestBody'][
@@ -231,7 +234,7 @@ class First:
                         resolver=self.ref_resolver,
                     )
                 except ValidationError as e:
-                    raise FlaskFirstJSONValidation(str(e))
+                    raise FirstRequestJSONValidation(str(e))
 
     def _register_response_validation(self) -> None:
         @self.app.after_request
@@ -255,7 +258,7 @@ class First:
                 )
                 return response
             except ValidationError as e:
-                raise FlaskFirstResponseValidation(e)
+                raise FirstResponseJSONValidation(e)
 
     def init_app(self, app: Flask) -> None:
         self.app = app

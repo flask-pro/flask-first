@@ -1,4 +1,5 @@
 from typing import List
+from typing import Union
 
 from marshmallow import fields
 from marshmallow import Schema
@@ -24,7 +25,7 @@ FIELDS_VIA_FORMATS = {
 }
 
 
-def _make_object_field(schema: dict) -> Field:
+def _make_object_field(schema: dict, as_nested: bool = True) -> Union[fields.Nested, type]:
     fields_for_nested_schema = {}
     for field_name, field_schema in schema['properties'].items():
         field = _make_field_for_schema(field_schema)
@@ -35,7 +36,11 @@ def _make_object_field(schema: dict) -> Field:
         fields_for_nested_schema[field_name] = field
 
     schema_object = Schema.from_dict(fields_for_nested_schema)
-    return fields.Nested(schema_object)
+
+    if as_nested:
+        return fields.Nested(schema_object)
+    else:
+        return schema_object
 
 
 def _make_array_field(schema: dict) -> Field:
@@ -83,14 +88,4 @@ def _make_field_for_schema(schema: dict) -> Field:
 
 
 def make_marshmallow_schema(schema: dict) -> type:
-    fields_for_generating = {}
-    for field_name, field_schema in schema['properties'].items():
-        generated_field = _make_field_for_schema(field_schema)
-
-        if schema.get('required'):
-            if field_name in schema['required']:
-                generated_field.required = True
-
-        fields_for_generating[field_name] = generated_field
-
-    return Schema.from_dict(fields_for_generating)
+    return _make_object_field(schema, as_nested=False)

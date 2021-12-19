@@ -6,13 +6,7 @@ from flask import Flask
 from flask import request
 
 from src.flask_first import First
-from src.flask_first import Specification
-
-
-def test_specification__load_from_yaml(fx_config):
-    spec = Specification(fx_config.PATH_TO_SPEC)
-    assert spec
-    assert spec.serialized['info']['title'] == 'Simple API for testing Flask-First'
+from src.flask_first.exceptions import FirstOpenAPIValidation
 
 
 def test_specification__bad_response(fx_app, fx_client):
@@ -32,6 +26,17 @@ def test_specification__full_field_openapi():
     app.config['FIRST_RESPONSE_VALIDATION'] = True
     full_spec = Path('specs/v3.0/full.openapi.yaml')
     First(full_spec, app)
+
+
+def test_specification__bad_openapi():
+    app = Flask('bad_api')
+    app.debug = True
+    app.config['FIRST_RESPONSE_VALIDATION'] = True
+    full_spec = Path('specs/bad.openapi.yaml')
+    try:
+        assert not First(full_spec, app)
+    except FirstOpenAPIValidation:
+        assert True
 
 
 @pytest.mark.parametrize('spec', os.listdir('specs/v3.0'))

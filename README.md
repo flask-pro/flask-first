@@ -5,6 +5,7 @@ Flask extension for using "specification first" principle.
 Features:
 
 * `Application Factory` supported.
+* Serializing `request.args` and storing result in `request.first_args`.
 * Validating path parameters from url.
 * Validating arguments from url.
 * Validating JSON from request.
@@ -15,12 +16,7 @@ Features:
 
 Limitations
 
-* All specification in one file.
-* Not supported `Encoding Object`.
-* Not supported `Discriminator Object`.
-* Not supported `XML Object`.
-* Not supported `Specification Extensions`.
-* Not supported `OAuthFlowsObject`.
+* Full specification in one file.
 
 ## Installing
 

@@ -6,6 +6,10 @@ from flask import make_response
 from flask import Response
 
 
+def _bad_request(description: str) -> Response:
+    return make_response(jsonify(code=400, name='Bad Request', description=description), 400)
+
+
 class FirstException(Exception):
     """Common exception."""
 
@@ -40,17 +44,17 @@ def register_errors(app: Flask) -> None:
     @app.errorhandler(FirstRequestPathParamValidation)
     def path_parameter_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
-        return make_response(jsonify(code=400, name='Bad Request', description=str(exc)), 400)
+        return _bad_request(str(exc))
 
     @app.errorhandler(FirstRequestArgsValidation)
     def args_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
-        return make_response(jsonify(code=400, name='Bad Request', description=str(exc)), 400)
+        return _bad_request(str(exc))
 
     @app.errorhandler(FirstRequestJSONValidation)
     def json_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
-        return make_response(jsonify(code=400, name='Bad Request', description=str(exc)), 400)
+        return _bad_request(str(exc))
 
     @app.errorhandler(FirstResponseJSONValidation)
     def response_validation_exception(exc) -> Response:

@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /mini_endpoint/{uuid}:
+    parameters:
+      - $ref: "#/components/parameters/uuid"
+    post:
+      parameters:
+        - $ref: "#/components/parameters/page"
+      operationId: mini_endpoint
+      requestBody:
+        $ref: "#/components/requestBodies/ItemRequest"
+      responses:
+        "200":
+          $ref: "#/components/responses/ItemResponse"
+components:
+  schemas:
+    Item:
+      type: object
+      properties:
+        message:
+          type: string
+  parameters:
+    uuid:
+      name: uuid
+      in: path
+      required: true
+      schema:
+        type: string
+        format: "uuid"
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+  requestBodies:
+    ItemRequest:
+      description: Request item.
+      content:
+        'application/json':
+          schema:
+            $ref: '#/components/schemas/Item'
+  responses:
+    ItemResponse:
+      description: Response item.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Item'

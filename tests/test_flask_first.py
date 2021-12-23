@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 from typing import Tuple
 
@@ -279,3 +280,27 @@ def test_specification__response_obj():
         r = test_client.get('/mini_endpoint')
         assert r.status_code == 200
         assert r.json == {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}
+
+
+def test_specification__resolving_references():
+    def mini_endpoint(uuid: str) -> dict:
+        return {'one': {'one_message': uuid}, 'list': [{'list_message': uuid}]}
+
+    first = First(Path('specs/v3.0/ref.openapi.yaml'))
+
+    def create_app():
+        app = Flask('object_app')
+        app.debug = 1
+        app.testing = 1
+        app.config['FIRST_RESPONSE_VALIDATION'] = True
+        first.init_app(app)
+        first.add_view_func(mini_endpoint)
+        return app
+
+    app = create_app()
+
+    with app.test_client() as test_client:
+        test_uuid = str(uuid.uuid4())
+        r = test_client.post(f'/mini_endpoint/{test_uuid}')
+        assert r.status_code == 200
+        assert r.json == {'one': {'one_message': test_uuid}, 'list': [{'list_message': test_uuid}]}

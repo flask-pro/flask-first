@@ -30,7 +30,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 
 
 class First:

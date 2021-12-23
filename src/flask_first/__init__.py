@@ -1,4 +1,5 @@
 """Flask extension for using “specification first” principle."""
+from copy import deepcopy
 from pathlib import Path
 from typing import List
 from typing import Optional
@@ -13,7 +14,6 @@ from flask import Response
 from flask import send_file
 from flask import url_for
 from jsonschema.exceptions import ValidationError
-from jsonschema.validators import RefResolver
 from openapi_schema_validator import oas30_format_checker
 from openapi_schema_validator import validate
 from openapi_spec_validator import validate_spec
@@ -49,15 +49,40 @@ class First:
         if self.app is not None:
             self.init_app(app)
 
-        self.spec, _ = read_from_filename(path_to_spec)
+        self.raw_spec, _ = read_from_filename(path_to_spec)
         try:
-            validate_spec(self.spec)
+            validate_spec(self.raw_spec)
         except OpenAPIValidationError as e:
             raise FirstOpenAPIValidation(repr(e))
 
-        self.ref_resolver = RefResolver.from_schema(self.spec)
+        self.spec = self._resolving_all_ref(self.raw_spec)
 
         self._mapped_routes_from_spec = []
+
+    def _resolving_all_ref(self, raw_schema: dict) -> dict:
+        resolved_schema = deepcopy(raw_schema)
+
+        if isinstance(resolved_schema, dict):
+            if '$ref' in resolved_schema:
+                keys = resolved_schema['$ref'].replace('#/', '').split('/')
+
+                schema_from_ref = deepcopy(self.raw_spec)
+                for key in keys:
+                    schema_from_ref = schema_from_ref[key]
+
+                return self._resolving_all_ref(schema_from_ref)
+
+            else:
+                for key, value in resolved_schema.items():
+                    resolved_schema[key] = self._resolving_all_ref(value)
+
+        if isinstance(resolved_schema, list):
+            schemas = []
+            for schema in resolved_schema:
+                schemas.append(self._resolving_all_ref(schema))
+            resolved_schema = schemas
+
+        return resolved_schema
 
     @staticmethod
     def route_to_openapi_format(route: str) -> str:
@@ -112,10 +137,6 @@ class First:
         properties = {}
         required = []
         for schema in schemas:
-            if '$ref' in schema:
-                with self.ref_resolver.resolving(schema['$ref']) as resolved_schema:
-                    schema = resolved_schema
-
             if schema.get('required') is True:
                 required.append(schema['name'])
             if schema['in'] == param_type:
@@ -156,6 +177,9 @@ class First:
 
     def _args_to_dict(self, args: MultiDict, schema: dict) -> dict:
         rendered_args = {}
+
+        # args.to_dict(flat=False) serializing all arguments as list for correct receipt of
+        # arguments of same name {'first_arg': ['1'], 'second_arg': ['10'], 'args_list': ['1', '2']}
         for key, value in args.to_dict(flat=False).items():
             if len(value) == 1:
                 rendered_args[key] = value[0]
@@ -201,24 +225,14 @@ class First:
 
             if path_params:
                 try:
-                    validate(
-                        path_params,
-                        path_schema,
-                        format_checker=oas30_format_checker,
-                        resolver=self.ref_resolver,
-                    )
+                    validate(path_params, path_schema, format_checker=oas30_format_checker)
                 except ValidationError as e:
                     raise FirstRequestPathParamValidation(e)
 
             if args:
                 try:
                     request.first_args = self._args_to_dict(args, args_schema)
-                    validate(
-                        request.first_args,
-                        args_schema,
-                        format_checker=oas30_format_checker,
-                        resolver=self.ref_resolver,
-                    )
+                    validate(request.first_args, args_schema, format_checker=oas30_format_checker)
                 except ValidationError as e:
                     raise FirstRequestArgsValidation(e)
 
@@ -227,12 +241,7 @@ class First:
                     'content'
                 ][request.content_type]['schema']
                 try:
-                    validate(
-                        request.json,
-                        json_request_schema,
-                        format_checker=oas30_format_checker,
-                        resolver=self.ref_resolver,
-                    )
+                    validate(request.json, json_request_schema, format_checker=oas30_format_checker)
                 except ValidationError as e:
                     raise FirstRequestJSONValidation(str(e))
 
@@ -245,17 +254,13 @@ class First:
                 return response
 
             route_as_in_spec = self.route_to_openapi_format(route)
+
             json_response_schema = self.spec['paths'][route_as_in_spec][method]['responses'][
                 str(response.status_code)
             ]['content'][response.content_type]['schema']
 
             try:
-                validate(
-                    response.json,
-                    json_response_schema,
-                    format_checker=oas30_format_checker,
-                    resolver=self.ref_resolver,
-                )
+                validate(response.json, json_response_schema, format_checker=oas30_format_checker)
                 return response
             except ValidationError as e:
                 raise FirstResponseJSONValidation(e)

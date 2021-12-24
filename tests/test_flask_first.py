@@ -87,7 +87,7 @@ def test_specification__bad_uuid_from_path_params(fx_app, fx_client, path_param)
 
     r_get = fx_client.get(f'/items/{path_param}')
     assert r_get.status_code == 400
-    assert f"'{path_param}' is not a 'uuid'" in r_get.json['description']
+    assert "{'uuid': ['Not a valid UUID.']}" in r_get.json['description']
 
 
 def test_specification__all_type_url_parameters(fx_app, fx_client):
@@ -139,7 +139,10 @@ def test_specification__all_of():
     first.add_view_func(all_of_endpoint)
 
     with app.test_client() as test_client:
-        assert test_client.get('/all_of_endpoint').status_code == 200
+        assert (
+            test_client.post('/all_of_endpoint', json={'id': 1, 'name': 'Test_name'}).status_code
+            == 200
+        )
 
 
 def test_specification__one_of():
@@ -304,3 +307,47 @@ def test_specification__resolving_references():
         r = test_client.post(f'/mini_endpoint/{test_uuid}')
         assert r.status_code == 200
         assert r.json == {'one': {'one_message': test_uuid}, 'list': [{'list_message': test_uuid}]}
+
+
+def test_specification__params__format():
+    def mini_endpoint(uuid_from_path: str, datetime_from_path: str) -> dict:
+        args = request.first_args
+        uuid_from_query = args['uuid_from_query']
+        datetime_from_query = args['datetime_from_query']
+
+        assert isinstance(uuid_from_query, uuid.UUID)
+        assert uuid_from_path == str(uuid_from_query)
+        assert datetime_from_path == str(datetime_from_query).replace(' ', 'T')
+
+        return {
+            'uuid_from_path': uuid_from_path,
+            'uuid_from_query': str(uuid_from_query),
+            'datetime_from_query': str(datetime_from_query).replace(' ', 'T'),
+        }
+
+    first = First(Path('specs/v3.0/parameters.openapi.yaml'))
+
+    def create_app():
+        app = Flask('params__format')
+        app.debug = 1
+        app.testing = 1
+        app.config['FIRST_RESPONSE_VALIDATION'] = True
+        first.init_app(app)
+        first.add_view_func(mini_endpoint)
+        return app
+
+    app = create_app()
+
+    with app.test_client() as test_client:
+        test_uuid = str(uuid.uuid4())
+        test_datetime = '2021-12-24T18:32:05'
+        r = test_client.get(
+            f'/parameters_endpoint/{test_uuid}/{test_datetime}',
+            query_string={'uuid_from_query': test_uuid, 'datetime_from_query': test_datetime},
+        )
+        assert r.status_code == 200
+        assert r.json == {
+            'uuid_from_path': test_uuid,
+            'uuid_from_query': test_uuid,
+            'datetime_from_query': test_datetime,
+        }

@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import List
 from typing import Optional
+from typing import Tuple
 from typing import Union
 
 from flask import Blueprint
@@ -13,7 +14,8 @@ from flask import request
 from flask import Response
 from flask import send_file
 from flask import url_for
-from jsonschema.exceptions import ValidationError
+from jsonschema.exceptions import ValidationError as JSONSchemaValidationError
+from marshmallow.exceptions import ValidationError
 from openapi_schema_validator import oas30_format_checker
 from openapi_schema_validator import validate
 from openapi_spec_validator import validate_spec
@@ -30,7 +32,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 
 class First:
@@ -120,7 +122,9 @@ class First:
 
         self._mapped_routes_from_spec.append(rule)
 
-    def _extract_data_from_request(self, request_obj: Request) -> tuple:
+    def _extract_data_from_request(
+        self, request_obj: Request
+    ) -> Tuple[str, str, MultiDict, dict, dict]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
@@ -128,10 +132,10 @@ class First:
         else:
             route = request_obj.url_rule
 
-        path_parameters = request_obj.view_args
+        view_args = request_obj.view_args
         args = request_obj.args
         json = request_obj.json
-        return method, route, path_parameters, args, json
+        return method, route, view_args, args, json
 
     def _make_schema_params(self, param_type: str, schemas: List[dict]) -> Optional[dict]:
         properties = {}
@@ -169,25 +173,29 @@ class First:
 
         # Create schema as object from parameters list.
         headers_schema = self._make_schema_params('header', schemas_params)
-        path_schema = self._make_schema_params('path', schemas_params)
+        view_args_schema = self._make_schema_params('path', schemas_params)
         args_schema = self._make_schema_params('query', schemas_params)
         cookie_schema = self._make_schema_params('cookie', schemas_params)
 
-        return headers_schema, path_schema, args_schema, cookie_schema
+        return headers_schema, view_args_schema, args_schema, cookie_schema
 
-    def _args_to_dict(self, args: MultiDict, schema: dict) -> dict:
-        rendered_args = {}
+    def _serializing_payload(self, payload: Union[MultiDict, dict], schema: dict) -> dict:
+        if isinstance(payload, MultiDict):
+            serialized_payload = {}
 
-        # args.to_dict(flat=False) serializing all arguments as list for correct receipt of
-        # arguments of same name {'first_arg': ['1'], 'second_arg': ['10'], 'args_list': ['1', '2']}
-        for key, value in args.to_dict(flat=False).items():
-            if len(value) == 1:
-                rendered_args[key] = value[0]
-            if len(value) > 1:
-                rendered_args[key] = value
+            # payload.to_dict(flat=False) serializing all arguments as list for correct receipt of
+            # arguments of same name:
+            # {'first_arg': ['1'], 'second_arg': ['10'], 'args_list': ['1', '2']}
+            for key, value in payload.to_dict(flat=False).items():
+                if len(value) == 1:
+                    serialized_payload[key] = value[0]
+                if len(value) > 1:
+                    serialized_payload[key] = value
+        else:
+            serialized_payload = payload
 
         marshmallow_schema = make_marshmallow_schema(schema)
-        return marshmallow_schema().load(rendered_args)
+        return marshmallow_schema().load(serialized_payload)
 
     def _registration_swagger_ui_blueprint(self, swagger_ui_path: Union[str, Path]) -> None:
         swagger_ui = Blueprint(
@@ -215,34 +223,35 @@ class First:
     def _register_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
-            method, route, path_params, args, json = self._extract_data_from_request(request)
+            method, route, view_args, args, json = self._extract_data_from_request(request)
 
             if route not in self._mapped_routes_from_spec:
                 return
 
             route_as_in_spec = self.route_to_openapi_format(route)
-            _, path_schema, args_schema, _ = self._make_schemas_params(method, route_as_in_spec)
+            _, view_args_schema, args_schema, _ = self._make_schemas_params(
+                method, route_as_in_spec
+            )
 
-            if path_params:
+            if view_args:
                 try:
-                    validate(path_params, path_schema, format_checker=oas30_format_checker)
+                    request.first_view_args = self._serializing_payload(view_args, view_args_schema)
                 except ValidationError as e:
                     raise FirstRequestPathParamValidation(e)
 
             if args:
                 try:
-                    request.first_args = self._args_to_dict(args, args_schema)
-                    validate(request.first_args, args_schema, format_checker=oas30_format_checker)
+                    request.first_args = self._serializing_payload(args, args_schema)
                 except ValidationError as e:
                     raise FirstRequestArgsValidation(e)
 
             if json:
-                json_request_schema = self.spec['paths'][route_as_in_spec][method]['requestBody'][
+                json_schema = self.spec['paths'][route_as_in_spec][method]['requestBody'][
                     'content'
                 ][request.content_type]['schema']
                 try:
-                    validate(request.json, json_request_schema, format_checker=oas30_format_checker)
-                except ValidationError as e:
+                    validate(request.json, json_schema, format_checker=oas30_format_checker)
+                except JSONSchemaValidationError as e:
                     raise FirstRequestJSONValidation(str(e))
 
     def _register_response_validation(self) -> None:
@@ -255,14 +264,14 @@ class First:
 
             route_as_in_spec = self.route_to_openapi_format(route)
 
-            json_response_schema = self.spec['paths'][route_as_in_spec][method]['responses'][
+            json_schema = self.spec['paths'][route_as_in_spec][method]['responses'][
                 str(response.status_code)
             ]['content'][response.content_type]['schema']
 
             try:
-                validate(response.json, json_response_schema, format_checker=oas30_format_checker)
+                validate(response.json, json_schema, format_checker=oas30_format_checker)
                 return response
-            except ValidationError as e:
+            except JSONSchemaValidationError as e:
                 raise FirstResponseJSONValidation(e)
 
     def init_app(self, app: Flask) -> None:

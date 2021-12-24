@@ -4,7 +4,6 @@ from typing import Union
 from marshmallow import fields
 from marshmallow import Schema
 from marshmallow import validate
-from marshmallow.fields import Field
 
 FIELDS_VIA_TYPES = {
     'boolean': fields.Boolean(),
@@ -43,7 +42,7 @@ def _make_object_field(schema: dict, as_nested: bool = True) -> Union[fields.Nes
         return schema_object
 
 
-def _make_array_field(schema: dict) -> Field:
+def _make_array_field(schema: dict) -> fields.Field:
     if schema['items']['type'] == 'object':
         nested_field = _make_field_for_schema(schema['items'])
         nested_field.many = True
@@ -68,7 +67,7 @@ def _make_field_validators(schema: dict) -> List[validate.Validator]:
     return validators
 
 
-def _make_field_for_schema(schema: dict) -> Field:
+def _make_field_for_schema(schema: dict) -> fields.Field:
     if schema.get('format'):
         field = FIELDS_VIA_FORMATS[schema['format']]
     else:

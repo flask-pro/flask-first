@@ -4,8 +4,10 @@ info:
   version: 1.0.0
 paths:
   /all_of_endpoint:
-    get:
+    post:
       operationId: all_of_endpoint
+      requestBody:
+        $ref: "#/components/requestBodies/ObjectSchema"
       responses:
         "200":
           description: OK
@@ -31,3 +33,10 @@ components:
       properties:
         name:
           type: string
+  requestBodies:
+    ObjectSchema:
+      description: Object.
+      content:
+        'application/json':
+          schema:
+            $ref: '#/components/schemas/ObjectSchema'

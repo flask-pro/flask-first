@@ -238,12 +238,16 @@ class First:
                     request.first_view_args = self._serializing_payload(view_args, view_args_schema)
                 except ValidationError as e:
                     raise FirstRequestPathParamValidation(e)
+            else:
+                request.first_view_args = view_args
 
             if args:
                 try:
                     request.first_args = self._serializing_payload(args, args_schema)
                 except ValidationError as e:
                     raise FirstRequestArgsValidation(e)
+            else:
+                request.first_args = args
 
             if json:
                 json_schema = self.spec['paths'][route_as_in_spec][method]['requestBody'][

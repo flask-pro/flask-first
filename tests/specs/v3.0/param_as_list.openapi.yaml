@@ -1,0 +1,30 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /parameters_endpoint:
+    parameters:
+      - name: param_as_list
+        in: query
+        description: list uuid from query
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+    get:
+      operationId: mini_endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  params_as_list:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid

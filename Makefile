@@ -6,7 +6,7 @@ create_venv:
 
 test:
 	# Run pytest.
-	./venv/bin/pytest --cov=src/flask_first tests/
+	./venv/bin/pytest -s --cov=src/flask_first tests/
 
 format:
 	# Run checking and formatting sources.

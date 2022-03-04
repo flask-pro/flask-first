@@ -8,6 +8,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 
+from .conftest import BASEDIR
 from src.flask_first import First
 
 ITEM = {
@@ -130,7 +131,7 @@ def test_specification__all_of():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/all_of.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/all_of.openapi.yaml')
     first = First(full_spec, app)
 
     def all_of_endpoint() -> dict:
@@ -150,7 +151,7 @@ def test_specification__one_of():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/one_of.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/one_of.openapi.yaml')
     first = First(full_spec, app)
 
     def one_of_endpoint() -> dict:
@@ -167,7 +168,7 @@ def test_specification__any_of():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/any_of.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/any_of.openapi.yaml')
     first = First(full_spec, app)
 
     def any_of_endpoint() -> dict:
@@ -184,7 +185,7 @@ def test_specification__not_registered_endpoint():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/not_registered_endpoint.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/not_registered_endpoint.openapi.yaml')
     First(full_spec, app)
 
     @app.route('/index')
@@ -202,7 +203,7 @@ def test_specification__headers():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/headers.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/headers.openapi.yaml')
     first = First(full_spec, app)
 
     def endpoint_with_header() -> dict:
@@ -220,7 +221,7 @@ def test_specification__factory_app():
     def mini_endpoint() -> dict:
         return {'message': 'test_factory_app'}
 
-    first = First(Path('specs/v3.0/mini.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.0/mini.openapi.yaml'))
 
     def create_app():
         app = Flask('factory_app')
@@ -243,7 +244,7 @@ def test_specification__registration_function():
     def mini_endpoint() -> dict:
         return {'message': 'test_factory_app'}
 
-    first = First(Path('specs/v3.0/mini.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.0/mini.openapi.yaml'))
 
     def create_app():
         app = Flask('factory_app')
@@ -266,7 +267,7 @@ def test_specification__response_obj():
     def mini_endpoint() -> dict:
         return {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}
 
-    first = First(Path('specs/v3.0/object.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.0/object.openapi.yaml'))
 
     def create_app():
         app = Flask('object_app')
@@ -289,7 +290,7 @@ def test_specification__resolving_references():
     def mini_endpoint(uuid: str) -> dict:
         return {'one': {'one_message': uuid}, 'list': [{'list_message': uuid}]}
 
-    first = First(Path('specs/v3.0/ref.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.0/ref.openapi.yaml'))
 
     def create_app():
         app = Flask('object_app')
@@ -325,7 +326,7 @@ def test_specification__params__format():
             'datetime_from_query': str(datetime_from_query).replace(' ', 'T'),
         }
 
-    first = First(Path('specs/v3.0/parameters.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.0/parameters.openapi.yaml'))
 
     def create_app():
         app = Flask('params__format')
@@ -351,3 +352,36 @@ def test_specification__params__format():
             'uuid_from_query': test_uuid,
             'datetime_from_query': test_datetime,
         }
+
+
+def test_specification__param_as_list():
+    def mini_endpoint() -> dict:
+        args = request.first_args
+        param_as_list = args['param_as_list']
+
+        assert isinstance(param_as_list, list)
+        assert isinstance(param_as_list[0], uuid.UUID)
+
+        return {'param_as_list': param_as_list}
+
+    first = First(Path(BASEDIR, 'specs/v3.0/param_as_list.openapi.yaml'))
+
+    def create_app():
+        app = Flask('param_as_list')
+        app.debug = 1
+        app.testing = 1
+        app.config['FIRST_RESPONSE_VALIDATION'] = True
+        first.init_app(app)
+        first.add_view_func(mini_endpoint)
+        return app
+
+    app = create_app()
+
+    with app.test_client() as test_client:
+        test_uuid = str(uuid.uuid4())
+        r = test_client.get(
+            '/parameters_endpoint',
+            query_string={'param_as_list': [test_uuid]},
+        )
+        assert r.status_code == 200
+        assert r.json == {'param_as_list': [test_uuid]}

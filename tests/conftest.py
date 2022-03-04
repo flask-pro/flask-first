@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 from flask import Flask
@@ -6,20 +7,20 @@ from flask.testing import FlaskClient
 
 from src.flask_first import First
 
-basedir = os.path.abspath(os.path.dirname(__file__))
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 
 @pytest.fixture()
 def fx_config():
     class Config:
-        PATH_TO_SPEC = os.path.join(basedir, "specs/v3.0/openapi.yaml")
+        PATH_TO_SPEC = Path(BASEDIR, 'specs/v3.0/openapi.yaml')
 
     return Config
 
 
 @pytest.fixture()
 def fx_app(fx_config):
-    app = Flask("testing_app")
+    app = Flask('testing_app')
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True

@@ -32,7 +32,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 
 class First:
@@ -187,10 +187,14 @@ class First:
             # arguments of same name:
             # {'first_arg': ['1'], 'second_arg': ['10'], 'args_list': ['1', '2']}
             for key, value in payload.to_dict(flat=False).items():
-                if len(value) == 1:
-                    serialized_payload[key] = value[0]
-                if len(value) > 1:
+                if key not in schema['properties']:
                     serialized_payload[key] = value
+                elif schema['properties'][key]['type'] == 'array':
+                    serialized_payload[key] = value
+                elif len(value) > 1:
+                    serialized_payload[key] = value
+                else:
+                    serialized_payload[key] = value[0]
         else:
             serialized_payload = payload
 

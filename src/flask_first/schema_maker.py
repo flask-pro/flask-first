@@ -5,6 +5,7 @@ from marshmallow import fields
 from marshmallow import Schema
 from marshmallow import validate
 
+
 FIELDS_VIA_TYPES = {
     'boolean': fields.Boolean(),
     'number': fields.Float(),
@@ -43,12 +44,17 @@ def _make_object_field(schema: dict, as_nested: bool = True) -> Union[fields.Nes
 
 
 def _make_array_field(schema: dict) -> fields.Field:
-    if schema['items']['type'] == 'object':
+    data_type = schema['items']['type']
+    data_format = schema['items'].get('format')
+    if data_type == 'object':
         nested_field = _make_field_for_schema(schema['items'])
         nested_field.many = True
         field = nested_field
+    elif data_format and data_format in FIELDS_VIA_FORMATS:
+        nested_field = FIELDS_VIA_FORMATS[data_format]
+        field = fields.List(nested_field)
     else:
-        nested_field = FIELDS_VIA_TYPES[schema['items']['type']]
+        nested_field = FIELDS_VIA_TYPES[data_type]
         field = fields.List(nested_field)
 
     return field

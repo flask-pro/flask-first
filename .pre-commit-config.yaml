@@ -15,12 +15,12 @@ repos:
       - id: check-builtin-literals
       - id: requirements-txt-fixer
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.1.0
     hooks:
       - id: black
         args: [--line-length=100, --skip-string-normalization]
   - repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.6.0
+    rev: v2.7.1
     hooks:
       - id: reorder-python-imports
   - repo: https://github.com/pre-commit/pygrep-hooks
@@ -39,7 +39,7 @@ repos:
           - flake8-implicit-str-concat
         args: [--max-line-length=100]
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.2.2
+    rev: v1.2.4
     hooks:
       - id: python-safety-dependencies-check
         files: requirements.txt

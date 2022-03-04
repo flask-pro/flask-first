@@ -1,10 +1,10 @@
-import os
 from pathlib import Path
 
 import pytest
 from flask import Flask
 from flask import request
 
+from .conftest import BASEDIR
 from src.flask_first import First
 from src.flask_first.exceptions import FirstOpenAPIValidation
 
@@ -24,7 +24,7 @@ def test_specification__bad_response(fx_app, fx_client):
 def test_specification__full_field_openapi():
     app = Flask('testing_app')
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/full.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/full.openapi.yaml')
     First(full_spec, app)
 
 
@@ -32,19 +32,19 @@ def test_specification__bad_openapi():
     app = Flask('bad_api')
     app.debug = True
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/bad.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/bad.openapi.yaml')
     try:
         assert not First(full_spec, app)
     except FirstOpenAPIValidation:
         assert True
 
 
-@pytest.mark.parametrize('spec', os.listdir('specs/v3.0'))
+@pytest.mark.parametrize('spec', Path(BASEDIR, 'specs/v3.0').iterdir())
 def test_specification__check_v30_specs(spec):
     specs_dir = 'specs/v3.0'
     app = Flask('check_v30_specs')
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(f'{specs_dir}/{spec}')
+    full_spec = Path(BASEDIR, specs_dir, spec)
     First(full_spec, app=app, swagger_ui_path='/docs')
 
     r = app.test_client().get('/docs', follow_redirects=True)
@@ -56,7 +56,7 @@ def test_specification__nullable_parameter():
     app = Flask('testing_app')
     app.debug = True
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path('specs/v3.0/nullable.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.0/nullable.openapi.yaml')
     first = First(full_spec, app)
 
     def nullable_endpoint() -> dict:

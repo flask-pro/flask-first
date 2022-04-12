@@ -32,7 +32,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.9.4'
+__version__ = '0.10.4'
 
 
 class First:
@@ -134,7 +134,7 @@ class First:
 
         view_args = request_obj.view_args
         args = request_obj.args
-        json = request_obj.json
+        json = request_obj.get_json()
         return method, route, view_args, args, json
 
     def _make_schema_params(self, param_type: str, schemas: List[dict]) -> Optional[dict]:
@@ -258,7 +258,7 @@ class First:
                     'content'
                 ][request.content_type]['schema']
                 try:
-                    validate(request.json, json_schema, format_checker=oas30_format_checker)
+                    validate(request.get_json(), json_schema, format_checker=oas30_format_checker)
                 except JSONSchemaValidationError as e:
                     raise FirstRequestJSONValidation(str(e))
 
@@ -277,7 +277,7 @@ class First:
             ]['content'][response.content_type]['schema']
 
             try:
-                validate(response.json, json_schema, format_checker=oas30_format_checker)
+                validate(response.get_json(), json_schema, format_checker=oas30_format_checker)
                 return response
             except JSONSchemaValidationError as e:
                 raise FirstResponseJSONValidation(e)

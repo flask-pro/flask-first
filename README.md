@@ -95,6 +95,36 @@ Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in br
 `FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
 developing. May be disabled in a production environment.
 
+## CORS support
+
+Your need enable CORS in Flask and adding `OPTIONS` method in your specification. Example:
+
+```yaml
+...
+paths:
+  /index:
+    post: ...
+    get: ...
+    put: ...
+    patch: ...
+    delete: ...
+    options:
+      summary: CORS support
+      responses:
+        200:
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: { }
+```
+
 ## Additional documentation
 
 * [OpenAPI Documentation](https://swagger.io/specification/).

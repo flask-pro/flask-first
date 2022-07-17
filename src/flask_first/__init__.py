@@ -32,7 +32,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.10.4'
+__version__ = '0.10.5'
 
 
 class First:
@@ -212,7 +212,7 @@ class First:
 
         @swagger_ui.add_app_template_global
         def swagger_ui_static(filename):
-            return url_for("swagger_ui.static", filename=filename)
+            return url_for('swagger_ui.static', filename=filename)
 
         @swagger_ui.route('/')
         def swagger_ui_page():

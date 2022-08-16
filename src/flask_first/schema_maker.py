@@ -1,6 +1,3 @@
-from typing import List
-from typing import Union
-
 from marshmallow import fields
 from marshmallow import Schema
 from marshmallow import validate
@@ -25,7 +22,7 @@ FIELDS_VIA_FORMATS = {
 }
 
 
-def _make_object_field(schema: dict, as_nested: bool = True) -> Union[fields.Nested, type]:
+def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested | type:
     fields_for_nested_schema = {}
     for field_name, field_schema in schema['properties'].items():
         field = _make_field_for_schema(field_schema)
@@ -60,7 +57,7 @@ def _make_array_field(schema: dict) -> fields.Field:
     return field
 
 
-def _make_field_validators(schema: dict) -> List[validate.Validator]:
+def _make_field_validators(schema: dict) -> list[validate.Validator]:
     validators = []
 
     if schema['type'] in ['string']:

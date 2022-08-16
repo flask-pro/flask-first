@@ -1,6 +1,5 @@
 import uuid
 from pathlib import Path
-from typing import Tuple
 
 import pytest
 from flask import Flask
@@ -19,7 +18,7 @@ ITEM = {
 
 
 def test_specification__create_item(fx_app, fx_client):
-    def create_item() -> Tuple:
+    def create_item() -> tuple:
         obj = {**request.json, 'uuid': ITEM['uuid']}
         return jsonify(obj), 201
 

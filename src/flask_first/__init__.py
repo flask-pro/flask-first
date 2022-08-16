@@ -1,10 +1,6 @@
 """Flask extension for using “specification first” principle."""
 from copy import deepcopy
 from pathlib import Path
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
 
 from flask import Blueprint
 from flask import Flask
@@ -32,7 +28,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.10.5'
+__version__ = '0.10.6'
 
 
 class First:
@@ -40,9 +36,9 @@ class First:
 
     def __init__(
         self,
-        path_to_spec: Union[str, Path],
+        path_to_spec: str | Path,
         app: Flask = None,
-        swagger_ui_path: Union[str, Path] = None,
+        swagger_ui_path: str | Path = None,
     ) -> None:
         self.app = app
         self.path_to_spec = path_to_spec
@@ -124,7 +120,7 @@ class First:
 
     def _extract_data_from_request(
         self, request_obj: Request
-    ) -> Tuple[str, str, MultiDict, dict, dict]:
+    ) -> tuple[str, str, MultiDict, dict, dict]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
@@ -137,7 +133,7 @@ class First:
         json = request_obj.get_json()
         return method, route, view_args, args, json
 
-    def _make_schema_params(self, param_type: str, schemas: List[dict]) -> Optional[dict]:
+    def _make_schema_params(self, param_type: str, schemas: list[dict]) -> dict | None:
         properties = {}
         required = []
         for schema in schemas:
@@ -179,7 +175,7 @@ class First:
 
         return headers_schema, view_args_schema, args_schema, cookie_schema
 
-    def _serializing_payload(self, payload: Union[MultiDict, dict], schema: dict) -> dict:
+    def _serializing_payload(self, payload: MultiDict | dict, schema: dict) -> dict:
         if isinstance(payload, MultiDict):
             serialized_payload = {}
 
@@ -201,7 +197,7 @@ class First:
         marshmallow_schema = make_marshmallow_schema(schema)
         return marshmallow_schema().load(serialized_payload)
 
-    def _registration_swagger_ui_blueprint(self, swagger_ui_path: Union[str, Path]) -> None:
+    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str | Path) -> None:
         swagger_ui = Blueprint(
             'swagger_ui',
             __name__,

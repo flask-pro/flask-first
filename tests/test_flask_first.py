@@ -1,6 +1,5 @@
 import uuid
 from pathlib import Path
-from typing import Tuple
 
 import pytest
 from flask import Flask
@@ -19,7 +18,7 @@ ITEM = {
 
 
 def test_specification__create_item(fx_app, fx_client):
-    def create_item() -> Tuple:
+    def create_item() -> tuple:
         obj = {**request.json, 'uuid': ITEM['uuid']}
         return jsonify(obj), 201
 
@@ -59,9 +58,9 @@ def test_specification__args(fx_app, fx_client):
 
     fx_app.extensions['first'].add_view_func(items_args)
 
-    args = {'page': 1, 'per_page': 10, 'page_list': ['first', 'second']}
+    args = {'page': 1000, 'per_page': 10, 'page_list': ['first', 'second']}
     r_get = fx_client.get('/items_args', query_string=args)
-    assert r_get.status_code == 200
+    assert r_get.status_code == 200, r_get.json
     assert r_get.json == args
 
 

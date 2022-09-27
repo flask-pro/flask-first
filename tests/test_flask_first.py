@@ -6,9 +6,9 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 from flask import Response
+from flask_first import First
 
 from .conftest import BASEDIR
-from src.flask_first import First
 
 ITEM = {
     'uuid': '789d995f-3aa0-4bf8-a37b-2f2f2086d503',

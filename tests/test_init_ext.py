@@ -1,6 +1,5 @@
 from flask import Flask
-
-from src.flask_first import First
+from flask_first import First
 
 
 def test_init_extension(fx_app):

@@ -1,4 +1,4 @@
-create_venv:
+venv:
 	# Create virtual environment.
 	python3.10 -m venv venv
 	./venv/bin/pip3 install --upgrade pip setuptools wheel

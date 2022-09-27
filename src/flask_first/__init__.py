@@ -1,6 +1,7 @@
 """Flask extension for using “specification first” principle."""
 from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 from flask import Blueprint
 from flask import Flask
@@ -28,7 +29,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.10.6'
+__version__ = '0.10.7'
 
 
 class First:
@@ -120,7 +121,7 @@ class First:
 
     def _extract_data_from_request(
         self, request_obj: Request
-    ) -> tuple[str, str, MultiDict, dict, dict]:
+    ) -> tuple[Any, str | None, dict[str, Any] | None, MultiDict[str, str], Any | None]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
@@ -130,7 +131,12 @@ class First:
 
         view_args = request_obj.view_args
         args = request_obj.args
-        json = request_obj.get_json()
+
+        if request_obj.is_json:
+            json = request_obj.get_json()
+        else:
+            json = None
+
         return method, route, view_args, args, json
 
     def _make_schema_params(self, param_type: str, schemas: list[dict]) -> dict | None:

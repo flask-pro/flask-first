@@ -17,6 +17,12 @@ paths:
                   message:
                     type: string
                     nullable: true
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ERROR"
       requestBody:
         content:
           application/json:
@@ -26,3 +32,24 @@ paths:
                 message:
                   type: string
                   nullable: true
+components:
+  schemas:
+    ERROR:
+      type: object
+      required:
+        - code
+        - name
+        - description
+      additionalProperties: false
+      properties:
+        code:
+          type: integer
+          minimum: 400
+          maximum: 599
+          example: 400
+        name:
+          type: string
+          example: "Bad Request"
+        description:
+          type: string
+          example: "Request data not valid."

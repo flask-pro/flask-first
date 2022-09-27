@@ -3,10 +3,10 @@ from pathlib import Path
 import pytest
 from flask import Flask
 from flask import request
+from flask_first import First
+from flask_first.exceptions import FirstOpenAPIValidation
 
 from .conftest import BASEDIR
-from src.flask_first import First
-from src.flask_first.exceptions import FirstOpenAPIValidation
 
 
 def test_specification__bad_response(fx_app, fx_client):
@@ -65,5 +65,5 @@ def test_specification__nullable_parameter():
     first.add_view_func(nullable_endpoint)
 
     r = app.test_client().post('/nullable_endpoint', json={'message': None})
-    assert r.status_code == 200
+    assert r.status_code == 200, r.json
     assert r.json == {'message': None}

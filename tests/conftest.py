@@ -4,8 +4,7 @@ from pathlib import Path
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-
-from src.flask_first import First
+from flask_first import First
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 

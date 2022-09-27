@@ -5,7 +5,7 @@ setup(
     name="Flask-First",
     install_requires=[
         'Flask>=2.0.2',
-        'openapi-spec-validator>=0.3.1',
+        'openapi-spec-validator==0.4.0',
         'marshmallow>=3.14.1',
     ],
 )

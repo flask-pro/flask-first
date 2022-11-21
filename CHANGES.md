@@ -1,4 +1,8 @@
-## Version 0.10.7
+## Version 0.10.8
+
+* Fix validation of the OPTIONS method.
+
+* ## Version 0.10.7
 
 * Fix requirements.
 

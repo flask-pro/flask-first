@@ -29,7 +29,7 @@ from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.10.7'
+__version__ = '0.10.8'
 
 
 class First:
@@ -232,6 +232,9 @@ class First:
             method, route, view_args, args, json = self._extract_data_from_request(request)
 
             if route not in self._mapped_routes_from_spec:
+                return
+
+            if method == 'options':
                 return
 
             route_as_in_spec = self.route_to_openapi_format(route)

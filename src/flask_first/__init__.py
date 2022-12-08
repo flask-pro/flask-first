@@ -26,10 +26,11 @@ from .exceptions import FirstRequestArgsValidation
 from .exceptions import FirstRequestJSONValidation
 from .exceptions import FirstRequestPathParamValidation
 from .exceptions import FirstResponseJSONValidation
+from .exceptions import FirstValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.10.8'
+__version__ = '0.10.9'
 
 
 class First:
@@ -277,15 +278,25 @@ class First:
 
             route_as_in_spec = self.route_to_openapi_format(route)
 
-            json_schema = self.spec['paths'][route_as_in_spec][method]['responses'][
+            content: dict = self.spec['paths'][route_as_in_spec][method]['responses'][
                 str(response.status_code)
-            ]['content'][response.content_type]['schema']
+            ]['content']
 
-            try:
-                validate(response.get_json(), json_schema, format_checker=oas30_format_checker)
-                return response
-            except JSONSchemaValidationError as e:
-                raise FirstResponseJSONValidation(e)
+            response_content_type = response.content_type
+
+            if response_content_type not in content and '*/*' not in content:
+                raise FirstValidation(
+                    f'Content type <{response_content_type}> not in <{content.keys()}>'
+                )
+
+            if response_content_type == 'application/json':
+                json_schema = content[response.content_type]['schema']
+                try:
+                    validate(response.get_json(), json_schema, format_checker=oas30_format_checker)
+                except JSONSchemaValidationError as e:
+                    raise FirstResponseJSONValidation(e)
+
+            return response
 
     def init_app(self, app: Flask) -> None:
         self.app = app

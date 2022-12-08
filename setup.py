@@ -9,5 +9,7 @@ setup(
         'openapi_schema_validator==0.2.3',
         'openapi-spec-validator==0.4.0',
         'marshmallow>=3.14.1',
+        'pydantic>=1.10.2',
+        'email-validator>=1.3.0',
     ],
 )

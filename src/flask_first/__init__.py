@@ -27,6 +27,7 @@ from .exceptions import FirstRequestJSONValidation
 from .exceptions import FirstRequestPathParamValidation
 from .exceptions import FirstResponseJSONValidation
 from .exceptions import register_errors
+from .openapi import OpenAPI303
 from .schema_maker import make_marshmallow_schema
 
 __version__ = '0.10.8'
@@ -49,6 +50,7 @@ class First:
             self.init_app(app)
 
         self.raw_spec, _ = read_from_filename(path_to_spec)
+        self.serialized_spec = OpenAPI303(**self.raw_spec)
         try:
             validate_spec(self.raw_spec)
         except OpenAPIValidationError as e:

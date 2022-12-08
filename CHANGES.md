@@ -1,3 +1,7 @@
+## Version 0.10.9
+
+* Fix download file with any "Content-Type".
+
 ## Version 0.10.8
 
 * Fix validation of the OPTIONS method.

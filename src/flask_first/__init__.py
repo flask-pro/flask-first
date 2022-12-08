@@ -30,7 +30,7 @@ from .exceptions import FirstValidation
 from .exceptions import register_errors
 from .schema_maker import make_marshmallow_schema
 
-__version__ = '0.10.8'
+__version__ = '0.10.9'
 
 
 class First:

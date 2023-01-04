@@ -1,5 +1,8 @@
+import re
 from enum import Enum
 from typing import Any
+from typing import ForwardRef
+from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import conint
@@ -9,7 +12,11 @@ from pydantic import Field
 from pydantic import HttpUrl
 from pydantic import root_validator
 from pydantic import validator
-from typing import Optional
+
+from ..exceptions import FirstOpenAPIValidation
+
+TYPES_SECURITY_SCHEMES = constr(regex=r'^(apiKey|http|oauth2|openIdConnect)$')
+VERSION_FORMAT = constr(regex=r'^\d.\d.\d$')
 
 
 class ServerVariableObject(BaseModel):
@@ -25,7 +32,9 @@ class ServerObject(BaseModel):
 
 
 class ReferenceObject(BaseModel):
-    ref_: str = Field(alias='$ref', regex=r'#/components/(schemas|parameters)/[a-zA-Z0-9\-_]')
+    ref_: str | None = Field(
+        alias='$ref', regex=r'#/components/(schemas|parameters)/[a-zA-Z0-9\-_]'
+    )
 
 
 class ExternalDocumentationObject(BaseModel):
@@ -55,10 +64,6 @@ class ParameterObject(BaseModel):
             return values
         else:
             raise ValueError('If <in> is <path> then <required> must be <true>.')
-
-    @root_validator
-    def name_validation(cls, values):
-        raise NotImplementedError
 
 
 class DiscriminatorObject(BaseModel):
@@ -124,20 +129,25 @@ class SchemaObject(BaseModel):
         raise NotImplementedError
 
     @root_validator
-    def maximum_validation(cls, values):
-        raise NotImplementedError
+    def maximum_validation(cls, values) -> [dict, ValueError]:
+        if values['exclusiveMaximum'] and values.get('maximum') is None:
+            raise ValueError('<exclusiveMaximum> requires <maximum>.')
 
     @root_validator
     def minimum_validation(cls, values):
-        raise NotImplementedError
+        if values['exclusiveMinimum'] and values.get('minimum') is None:
+            raise ValueError('<exclusiveMinimum> requires <minimum>.')
 
     @root_validator
     def required_validation(cls, values):
-        raise NotImplementedError
-
-    @root_validator
-    def default_validation(cls, values):
-        raise NotImplementedError
+        if values:
+            required_fields = values.get('required')
+            if required_fields:
+                for field in required_fields:
+                    if field not in values['properties'].keys():
+                        raise ValueError(
+                            f'Required field <{field}> not in <{values["properties"]}>.'
+                        )
 
 
 class ExampleObject(BaseModel):
@@ -155,13 +165,42 @@ class ExampleObject(BaseModel):
         raise NotImplementedError
 
 
+class HeaderObject(ParameterObject):
+    @validator('name')
+    def name_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('in_')
+    def in_validation(cls, value):
+        raise NotImplementedError
+
 
 class EncodingObject(BaseModel):
-    raise NotImplementedError
+    contentType: str | None
+    headers: dict[str, HeaderObject | ReferenceObject] | None
+    style: str | None
+    explode: bool | None
+    allowReserved: bool | None
+
+    @validator('headers')
+    def headers_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('style')
+    def style_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('explode')
+    def explode_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('allowReserved')
+    def allowReserved_validation(cls, value):
+        raise NotImplementedError
 
 
 class MediaTypeObject(BaseModel):
-    schema: SchemaObject | ReferenceObject | None
+    schema_: SchemaObject | ReferenceObject | None = Field(alias='schema')
     example: Any
     examples: dict[str, ExampleObject | ReferenceObject]
     encoding: dict[str, EncodingObject]
@@ -199,8 +238,8 @@ class OAuthFlowsObject(BaseModel):
     authorizationCode: OAuthFlowObject | None
 
 
-class SecurityRequirementObject(BaseModel):
-    type: constr(regex=r'^(apiKey|http|oauth2|openIdConnect)$')
+class SecuritySchemeObject(BaseModel):
+    type: TYPES_SECURITY_SCHEMES
     description: str | None
     name: str | None
     in_: LocationsParameter = Field(alias='in')
@@ -213,7 +252,7 @@ class SecurityRequirementObject(BaseModel):
     def name_validation(cls, value):
         raise NotImplementedError
 
-    @validator('in')
+    @validator('in_')
     def in_validation(cls, value):
         raise NotImplementedError
 
@@ -226,16 +265,60 @@ class SecurityRequirementObject(BaseModel):
         raise NotImplementedError
 
     @validator('openIdConnectUrl')
-    def flows_validation(cls, value):
+    def open_id_connect_url_validation(cls, value):
         raise NotImplementedError
 
 
-class CallbackObject(BaseModel):
-    raise NotImplementedError
+class SecurityRequirementObject(BaseModel):
+    __root__: SecuritySchemeObject
+
+    @validator('__root__')
+    def operation_ref_validation(cls, value):
+        raise NotImplementedError
+
+
+class LinkObject(BaseModel):
+    operationRef: str | None = Field(alias='operation_ref')
+    operationId: str | None = Field(alias='operation_id')
+    parameters: dict[str, Any | str] | None
+    requestBody: Any | str | None = Field(alias='request_body')
+    description: str | None
+    server: ServerObject | None
+
+    @validator('operationRef')
+    def operation_ref_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('operationId')
+    def operation_id_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('parameters')
+    def parameters_validation(cls, value):
+        raise NotImplementedError
+
+    @validator('requestBody')
+    def request_body_validation(cls, value):
+        raise NotImplementedError
+
+
+class ResponseObject(BaseModel):
+    description: str
+    headers: dict[str, HeaderObject | ReferenceObject] | None
+    content: dict[str, MediaTypeObject] | None
+    links: dict[str, LinkObject | ReferenceObject] | None
 
 
 class ResponsesObject(BaseModel):
-    raise NotImplementedError
+    __root__: ResponseObject | ReferenceObject | None
+
+    # @root_validator
+    # def all_root_validation(cls, values) -> [dict, ValueError]:
+    #     raise NotImplementedError
+
+    # @validator('__root__')
+    # def operation_ref_validation(cls, value):
+    #     raise NotImplementedError
 
 
 class OperationObject(BaseModel):
@@ -247,7 +330,11 @@ class OperationObject(BaseModel):
     parameters: list[ParameterObject | ReferenceObject] | None
     requestBody: RequestBodyObject | ReferenceObject | None
     responses: ResponsesObject
-    callbacks: dict[str, CallbackObject | ReferenceObject] | None
+
+    # fmt: off
+    callbacks: dict[str, ForwardRef('CallbackObject') or ReferenceObject] | None
+    # fmt: on
+
     deprecated: bool | None
     security: list[SecurityRequirementObject] | None
     servers: list[ServerObject] | None
@@ -265,16 +352,50 @@ class PathItemObject(BaseModel):
     head: OperationObject | None
     patch: OperationObject | None
     trace: OperationObject | None
-    servers: list[ServerObject]
-    parameters: list[ParameterObject | ReferenceObject]
+    servers: list[ServerObject] | None
+    parameters: list[ParameterObject | ReferenceObject] | None
 
 
-class Route(BaseModel):
-    __root__: constr(regex=r'^/[a-z\-{}_/]*$')
+class CallbackObject(BaseModel):
+    __root__: PathItemObject
+
+
+class OperationObject(BaseModel):
+    tags: list[str] | None
+    summary: str | None
+    description: str | None
+    externalDocs: ExternalDocumentationObject | None
+    operationId: str | None
+    parameters: list[ParameterObject | ReferenceObject] | None
+    requestBody: RequestBodyObject | ReferenceObject | None
+    responses: ResponsesObject
+    callbacks: dict[str, CallbackObject | ReferenceObject] | None
+    deprecated: bool | None
+    security: list[SecurityRequirementObject] | None
+    servers: list[ServerObject] | None
 
 
 class PathsObject(BaseModel):
-    __root__: dict[Route, PathItemObject]
+    __root__: dict[str, PathItemObject]
+
+    @validator('__root__')
+    def root_validation(cls, value):
+        http_methods = ('delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace')
+        re_route = r'^/[a-z\-{}_/]*$'
+        for route, path_item_object in value.items():
+            if re.fullmatch(re_route, route) is None:
+                raise FirstOpenAPIValidation(
+                    f'Route <{route}> not match regular expression <{re_route}>.'
+                )
+
+            for http_method in http_methods:
+                operation_object = getattr(path_item_object, http_method)
+                if operation_object:
+                    if operation_object.parameters is not None:
+                        raise NotImplementedError
+
+        if value.get('parameters') is not None:
+            raise NotImplementedError
 
 
 class LicenseObject(BaseModel):
@@ -290,27 +411,15 @@ class ContactObject(BaseModel):
 
 class InfoObject(BaseModel):
     title: str
-    description: str
-    termsOfService: str
-    contact: ContactObject
-    license: LicenseObject
-    version: constr(regex=r'^\d.\d.\d$')
+    description: str | None
+    termsOfService: str | None
+    contact: ContactObject | None
+    license: LicenseObject | None
+    version: VERSION_FORMAT
 
 
-class LinkObject(BaseModel):
-    raise NotImplementedError
-
-
-class SecuritySchemeObject(BaseModel):
-    raise NotImplementedError
-
-
-class HeaderObject(BaseModel):
-    raise NotImplementedError
-
-
-class ResponseObject(BaseModel):
-    raise NotImplementedError
+# class HeaderObject(BaseModel):
+#     raise NotImplementedError
 
 
 class ComponentsObject(BaseModel):
@@ -332,7 +441,7 @@ class TagObject(BaseModel):
 
 
 class OpenAPIObject(BaseModel):
-    openapi: constr(regex=r'^3.0.3$')
+    openapi: VERSION_FORMAT
     info: InfoObject
     servers: list[ServerObject] | None
     paths: PathsObject
@@ -340,9 +449,3 @@ class OpenAPIObject(BaseModel):
     security: list[SecurityRequirementObject] | None
     tags: TagObject | None
     externalDocs: ExternalDocumentationObject | None
-
-
-class OpenAPI303(BaseModel):
-    """Root model for OpenAPI v.3.0.3."""
-
-    __root__: OpenAPIObject

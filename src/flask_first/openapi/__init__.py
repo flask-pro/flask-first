@@ -1,3 +1,3 @@
-from .schema import OpenAPI303
+from .schema import OpenAPIObject
 
-__all__ = [OpenAPI303]
+__all__ = [OpenAPIObject]

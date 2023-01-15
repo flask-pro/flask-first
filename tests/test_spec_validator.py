@@ -17,11 +17,11 @@ def test_spec_validator(spec):
     app.config['FIRST_RESPONSE_VALIDATION'] = True
     first = First(spec, app=app, swagger_ui_path='/docs')
 
-    def mini_endpoint() -> dict:
+    def get_endpoint() -> dict:
         return {'message': 'OK'}
 
-    first.add_view_func(mini_endpoint)
+    first.add_view_func(get_endpoint)
 
-    r = app.test_client().get('/mini_endpoint', follow_redirects=True)
+    r = app.test_client().get('/get_endpoint', follow_redirects=True)
     assert r.status_code == 200
     assert r.json['message'] == 'OK'

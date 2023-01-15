@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: API for testing Flask-First
+  version: 1.0.0
+paths:
+  /get_endpoint:
+    get:
+      operationId: get_endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+components:
+  responses:
+    ResponseObject:
+      description: response object
+  examples:
+    ExamplesObject:
+      description: Short description for the example.
+  requestBodies:
+    RequestBodyObject:
+      content:
+        '*/*':
+          examples:
+            user:
+              description: Short description for the example.
+  headers:
+    HeaderObject:
+      description: The number of allowed requests in the current period
+      schema:
+        type: integer
+  securitySchemes:
+    httpBasicAuth:
+      type: http
+      scheme: basic

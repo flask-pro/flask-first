@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: API for testing Flask-First
+  version: 1.0.0
+servers:
+  - url: https://flask.pro
+  - url: https://{username}.prod-server.com:{port}/{basePath}
+    description: The production API server
+    variables:
+      username:
+        default: demo
+        description: demo user
+      port:
+        enum:
+          - '8443'
+          - '443'
+        default: '8443'
+      basePath:
+        default: v2
+  - url: http://{username}.prod.com
+    variables:
+      username:
+        enum:
+          - demo
+          - admin
+        default: demo
+paths:
+  /get_endpoint:
+    get:
+      operationId: get_endpoint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

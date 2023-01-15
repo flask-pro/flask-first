@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: reorder-python-imports
   - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.9.0
+    rev: v1.10.0
     hooks:
       - id: python-use-type-annotations
       - id: python-no-eval
@@ -39,7 +39,7 @@ repos:
           - flake8-implicit-str-concat
         args: [--max-line-length=100]
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.3.0
+    rev: v1.3.1
     hooks:
       - id: python-safety-dependencies-check
         files: requirements.txt

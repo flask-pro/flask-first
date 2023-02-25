@@ -5,11 +5,8 @@ setup(
     name="Flask-First",
     install_requires=[
         'Flask>=2.0.2',
-        'jsonschema>=4.10.0',
-        'openapi_schema_validator==0.2.3',
-        'openapi-spec-validator==0.4.0',
+        'openapi-spec-validator>=0.5.0',
         'marshmallow>=3.14.1',
-        'pydantic>=1.10.2',
         'email-validator>=1.3.0',
     ],
 )

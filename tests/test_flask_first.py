@@ -287,7 +287,7 @@ def test_specification__response_obj():
 
 def test_specification__resolving_references():
     def mini_endpoint(uuid: str) -> dict:
-        return {'one': {'one_message': uuid}, 'list': [{'list_message': uuid}]}
+        return {'message': str(uuid)}
 
     first = First(Path(BASEDIR, 'specs/v3.0/ref.openapi.yaml'))
 
@@ -306,7 +306,7 @@ def test_specification__resolving_references():
         test_uuid = str(uuid.uuid4())
         r = test_client.post(f'/mini_endpoint/{test_uuid}')
         assert r.status_code == 200
-        assert r.json == {'one': {'one_message': test_uuid}, 'list': [{'list_message': test_uuid}]}
+        assert r.json == {'message': test_uuid}
 
 
 def test_specification__params__format():

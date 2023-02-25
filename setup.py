@@ -7,6 +7,5 @@ setup(
         'Flask>=2.0.2',
         'openapi-spec-validator>=0.5.0',
         'marshmallow>=3.14.1',
-        'email-validator>=1.3.0',
     ],
 )

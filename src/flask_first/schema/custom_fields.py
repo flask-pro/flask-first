@@ -22,7 +22,7 @@ class AllOf(fields.Field):
         if not errors:
             serialized_data = {}
             for schema in valid_schemas:
-                serialized_data = serialized_data | schema(unknown=EXCLUDE).load(value)
+                serialized_data = {**serialized_data, **schema(unknown=EXCLUDE).load(value)}
             return serialized_data
         else:
             raise ValidationError(f'The value <{value}> does not match all schemas.')

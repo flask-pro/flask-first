@@ -7,6 +7,8 @@ from .custom_fields import AllOf
 from .custom_fields import AnyOf
 from .custom_fields import OneOf
 
+MULTI_SCHEMA_FIELDS = ('oneOf', 'anyOf', 'allOf')
+
 
 class BytesField(fields.Field):
     def _validate(self, value):
@@ -75,30 +77,10 @@ def _make_array_field(schema: dict) -> fields.Field:
     return field
 
 
-def _make_multiple_field(schema: dict) -> type:
-    marshmallow_schemas = []
-    multiple_field_name = None
-
-    for key in schema:
-        if key in ('oneOf', 'anyOf', 'allOf'):
-            multiple_field_name = key
-            break
-        else:
-            raise NotImplementedError('Not available multi-schema.')
-
-    for schema_item in schema[multiple_field_name]:
-        marshmallow_schemas.append(make_marshmallow_schema(schema_item))
-
-    if 'oneOf' in multiple_field_name:
-        schema_multiple_field = Schema.from_dict({multiple_field_name: OneOf(*marshmallow_schemas)})
-    elif 'anyOf' in multiple_field_name:
-        schema_multiple_field = Schema.from_dict({multiple_field_name: AnyOf(*marshmallow_schemas)})
-    elif 'allOf' in multiple_field_name:
-        schema_multiple_field = Schema.from_dict({multiple_field_name: AllOf(*marshmallow_schemas)})
-    else:
-        raise NotImplementedError('Not available schema.')
-
-    return schema_multiple_field
+def _make_multiple_field(schemas: list, field_name: str) -> type:
+    schemas = (make_marshmallow_schema(schema) for schema in schemas)
+    fields_map = {'oneOf': OneOf, 'anyOf': AnyOf, 'allOf': AllOf}
+    return Schema.from_dict({field_name: fields_map[field_name](*schemas)})
 
 
 def _make_field_validators(schema: dict) -> list[validate.Validator]:
@@ -118,11 +100,11 @@ def make_marshmallow_schema(schema: dict, as_nested: bool = False) -> fields.Fie
     if 'nullable' in schema and schema.get('type', ...) is ...:
         field = FIELDS_VIA_TYPES['boolean']()
     elif 'allOf' in schema:
-        field = _make_multiple_field(schema)
+        field = _make_multiple_field(schema['allOf'], 'allOf')
     elif 'anyOf' in schema:
-        field = _make_multiple_field(schema)
+        field = _make_multiple_field(schema['anyOf'], 'anyOf')
     elif 'oneOf' in schema:
-        field = _make_multiple_field(schema)
+        field = _make_multiple_field(schema['oneOf'], 'oneOf')
     elif schema.get('format'):
         field = FIELDS_VIA_FORMATS[schema['format']]()
     elif schema['type'] == 'object':

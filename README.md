@@ -6,8 +6,7 @@ Features:
 
 * `Application Factory` supported.
 * Validating and serializing arguments from `request.args`, `request.view_args`
-  and `request.cookies`
-  to `request.first_args`.
+  and `request.cookies` to `request.first_args`.
 * Validating JSON from request.
 * Validating JSON from response.
 * Provides a Swagger UI.

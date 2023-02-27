@@ -5,17 +5,20 @@ Flask extension for using "specification first" principle.
 Features:
 
 * `Application Factory` supported.
-* Validating and serializing path parameters from `request.view_args` to `request.first_view_args`.
-* Validating and serializing arguments from `request.args` to `request.first_args`.
+* Validating and serializing arguments from `request.args`, `request.view_args` and `request.cookies`
+  to `request.first_args`.
 * Validating JSON from request.
 * Validating JSON from response.
 * Provides a Swagger UI.
 
+Limitations
 ----
 
-Limitations
+Will be added in future releases.
 
 * Full specification in one file.
+* Headers not supported.
+* Authorization not supported.
 
 ## Installing
 
@@ -32,29 +35,29 @@ OpenAPI 3 specification file `openapi.yaml`:
 ```yaml
 openapi: 3.0.3
 info:
-  title: Simple API for Flask-First
-  version: 1.0.0
+    title: Simple API for Flask-First
+    version: 1.0.0
 paths:
-  /{name}:
-    parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
-    get:
-      operationId: index
-      summary: Returns a list of items
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
+    /{name}:
+        parameters:
+            -   name: name
+                in: path
+                required: true
+                schema:
                     type: string
+        get:
+            operationId: index
+            summary: Returns a list of items
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
 ```
 
 File with application initialization `main.py`:
@@ -72,8 +75,10 @@ app = Flask(__name__)
 app.config['FIRST_RESPONSE_VALIDATION'] = True
 first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
+
 def index(name):
     return {'message': name}
+
 
 first.add_view_func(index)
 
@@ -88,7 +93,8 @@ Run application:
 $ python main.py
 ```
 
-Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in browser `http://127.0.0.1:5000/docs`.
+Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in
+browser `http://127.0.0.1:5000/docs`.
 
 ## Settings
 
@@ -102,27 +108,27 @@ Your need enable CORS in Flask and adding `OPTIONS` method in your specification
 ```yaml
 ...
 paths:
-  /index:
-    post: ...
-    get: ...
-    put: ...
-    patch: ...
-    delete: ...
-    options:
-      summary: CORS support
-      responses:
-        200:
-          headers:
-            Access-Control-Allow-Origin:
-              schema:
-                type: string
-            Access-Control-Allow-Methods:
-              schema:
-                type: string
-            Access-Control-Allow-Headers:
-              schema:
-                type: string
-          content: { }
+    /index:
+        post: ...
+        get: ...
+        put: ...
+        patch: ...
+        delete: ...
+        options:
+            summary: CORS support
+            responses:
+                200:
+                    headers:
+                        Access-Control-Allow-Origin:
+                            schema:
+                                type: string
+                        Access-Control-Allow-Methods:
+                            schema:
+                                type: string
+                        Access-Control-Allow-Headers:
+                            schema:
+                                type: string
+                    content: { }
 ```
 
 ## Additional documentation

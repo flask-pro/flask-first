@@ -63,7 +63,7 @@ def _convert_parameters_to_schema(resolved_schema: dict) -> dict:
 
 def resolving_refs(raw_schema: dict) -> dict:
     schema = deepcopy(raw_schema)
-    schema_without_refs = _resolving_all_refs(deepcopy(schema), schema)
+    schema_without_refs = _resolving_all_refs(raw_schema, schema)
     resolved_schema = _convert_parameters_to_schema(schema_without_refs)
     return resolved_schema
 

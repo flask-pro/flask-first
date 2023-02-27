@@ -5,7 +5,8 @@ Flask extension for using "specification first" principle.
 Features:
 
 * `Application Factory` supported.
-* Validating and serializing arguments from `request.args`, `request.view_args` and `request.cookies`
+* Validating and serializing arguments from `request.args`, `request.view_args`
+  and `request.cookies`
   to `request.first_args`.
 * Validating JSON from request.
 * Validating JSON from response.
@@ -35,29 +36,29 @@ OpenAPI 3 specification file `openapi.yaml`:
 ```yaml
 openapi: 3.0.3
 info:
-    title: Simple API for Flask-First
-    version: 1.0.0
+  title: Simple API for Flask-First
+  version: 1.0.0
 paths:
-    /{name}:
-        parameters:
-            -   name: name
-                in: path
-                required: true
-                schema:
+  /{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: index
+      summary: Returns a list of items
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
                     type: string
-        get:
-            operationId: index
-            summary: Returns a list of items
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
 ```
 
 File with application initialization `main.py`:
@@ -77,13 +78,13 @@ first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
 
 def index(name):
-    return {'message': name}
+  return {'message': name}
 
 
 first.add_view_func(index)
 
 if __name__ == '__main__':
-    app.run()
+  app.run()
 
 ```
 
@@ -108,27 +109,27 @@ Your need enable CORS in Flask and adding `OPTIONS` method in your specification
 ```yaml
 ...
 paths:
-    /index:
-        post: ...
-        get: ...
-        put: ...
-        patch: ...
-        delete: ...
-        options:
-            summary: CORS support
-            responses:
-                200:
-                    headers:
-                        Access-Control-Allow-Origin:
-                            schema:
-                                type: string
-                        Access-Control-Allow-Methods:
-                            schema:
-                                type: string
-                        Access-Control-Allow-Headers:
-                            schema:
-                                type: string
-                    content: { }
+  /index:
+    post: ...
+    get: ...
+    put: ...
+    patch: ...
+    delete: ...
+    options:
+      summary: CORS support
+      responses:
+        200:
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: { }
 ```
 
 ## Additional documentation

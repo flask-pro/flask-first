@@ -88,7 +88,8 @@ def _make_field_validators(schema: dict) -> list[validate.Validator]:
 
     if schema['type'] in ['string']:
         validators.append(validate.Length(min=schema.get('minLength'), max=schema.get('maxLength')))
-        validators.append(validate.Regexp(schema.get('pattern', r'^.*$')))
+        if schema.get('pattern'):
+            validators.append(validate.Regexp(schema['pattern']))
 
     if schema['type'] in ['integer', 'number']:
         validators.append(validate.Range(min=schema.get('minimum'), max=schema.get('maximum')))

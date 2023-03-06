@@ -5,17 +5,20 @@ Flask extension for using "specification first" principle.
 Features:
 
 * `Application Factory` supported.
-* Validating and serializing path parameters from `request.view_args` to `request.first_view_args`.
-* Validating and serializing arguments from `request.args` to `request.first_args`.
+* Validating and serializing arguments from `request.args`, `request.view_args`
+  and `request.cookies` to `request.first_args`.
 * Validating JSON from request.
 * Validating JSON from response.
 * Provides a Swagger UI.
 
+Limitations
 ----
 
-Limitations
+Will be added in future releases.
 
 * Full specification in one file.
+* Headers not supported.
+* Authorization not supported.
 
 ## Installing
 
@@ -72,13 +75,15 @@ app = Flask(__name__)
 app.config['FIRST_RESPONSE_VALIDATION'] = True
 first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
+
 def index(name):
-    return {'message': name}
+  return {'message': name}
+
 
 first.add_view_func(index)
 
 if __name__ == '__main__':
-    app.run()
+  app.run()
 
 ```
 
@@ -88,7 +93,8 @@ Run application:
 $ python main.py
 ```
 
-Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in browser `http://127.0.0.1:5000/docs`.
+Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in
+browser `http://127.0.0.1:5000/docs`.
 
 ## Settings
 

@@ -47,3 +47,6 @@ paths:
                   uuid_from_query:
                     type: string
                     format: uuid
+                  datetime_from_query:
+                    type: string
+                    format: date-time

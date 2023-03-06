@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+tags:
+  - name: get_endpoints
+    description: gets endpoints
+    externalDocs:
+      url: https://github.com/flask-pro/flask-first
+      description: Find more info here
+  - name: only_required_fields_for_tags
+    externalDocs:
+      url: https://github.com/flask-pro/flask-first
+paths:
+  /get_endpoint:
+    get:
+      operationId: get_endpoint
+      tags:
+        - get_endpoints
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

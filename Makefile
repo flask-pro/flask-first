@@ -6,7 +6,7 @@ venv:
 
 test:
 	# Run pytest.
-	./venv/bin/pytest -s --cov=src/flask_first tests/
+	./venv/bin/pytest -s -x --cov-report term-missing:skip-covered --cov=src/flask_first tests/
 
 format:
 	# Run checking and formatting sources.

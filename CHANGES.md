@@ -1,3 +1,10 @@
+## Version 0.11.0
+
+* Add using marshmallow schemas for validation and serialization data.
+* Remove several depends.
+* Validating and serializing arguments from `request.args`, `request.view_args`
+  and `request.cookies` union and store to `request.first_args`.
+
 ## Version 0.10.9
 
 * Fix download file with any "Content-Type".

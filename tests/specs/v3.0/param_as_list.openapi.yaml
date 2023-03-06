@@ -23,7 +23,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  params_as_list:
+                  param_as_list:
                     type: array
                     items:
                       type: string

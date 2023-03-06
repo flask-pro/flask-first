@@ -384,3 +384,21 @@ def test_specification__param_as_list():
         )
         assert r.status_code == 200
         assert r.json == {'param_as_list': [test_uuid]}
+
+
+@pytest.mark.xfail(reason='Hashmap not implemented')
+def test_specification__not_defined_name_key():
+    app = Flask('testing_not_defined_name_key')
+    app.debug = 1
+    app.testing = 1
+    app.config['FIRST_RESPONSE_VALIDATION'] = True
+    full_spec = Path(BASEDIR, 'specs/v3.0/not_defined_name_key.openapi.yaml')
+    first = First(full_spec, app)
+
+    def one_of_endpoint() -> dict:
+        return {'name': 'Test_name'}
+
+    first.add_view_func(one_of_endpoint)
+
+    with app.test_client() as test_client:
+        assert test_client.get('/one_of_endpoint').status_code == 200

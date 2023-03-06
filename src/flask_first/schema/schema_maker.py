@@ -40,6 +40,10 @@ FIELDS_VIA_FORMATS = {
 
 
 def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested | type:
+
+    if schema.get('properties') is None and schema['additionalProperties'].get('oneOf'):
+        raise NotImplementedError('Hashmap not implemented.')
+
     fields_obj = {}
     for field_name, field_schema in schema['properties'].items():
         if field_schema['type'] == 'object':

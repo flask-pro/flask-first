@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import marshmallow
 from flask import Blueprint
 from flask import Flask
 from flask import render_template
@@ -12,7 +13,6 @@ from flask import Response
 from flask import send_file
 from flask import url_for
 from marshmallow.exceptions import ValidationError
-from marshmallow.fields import List
 from openapi_spec_validator import validate_spec
 from openapi_spec_validator.readers import read_from_filename
 from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
@@ -21,7 +21,9 @@ from werkzeug.datastructures import MultiDict
 from .exceptions import FirstException
 from .exceptions import FirstOpenAPIValidation
 from .exceptions import FirstRequestArgsValidation
+from .exceptions import FirstRequestCookieValidation
 from .exceptions import FirstRequestJSONValidation
+from .exceptions import FirstRequestPathArgsValidation
 from .exceptions import FirstResponseJSONValidation
 from .exceptions import FirstValidation
 from .exceptions import register_errors
@@ -84,7 +86,7 @@ class First:
 
             params_as_flask_format = {}
             for param in path_params:
-                param_type = params_schema['schema']['properties'][param]['type']
+                param_type = params_schema['view_args']['properties'][param]['type']
                 params_as_flask_format[param] = f'<{self.TYPES_IN_ROUTE_MAPPER[param_type]}{param}>'
 
             rule = route.format(**params_as_flask_format)
@@ -97,7 +99,7 @@ class First:
 
     def _extract_data_from_request(
         self, request_obj: Request
-    ) -> tuple[Any, str | None, dict[str, str | Any], Any | None]:
+    ) -> tuple[Any, str | None, dict[str, Any] | None, dict, dict, Any | None]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
@@ -105,22 +107,18 @@ class First:
         else:
             route = request_obj.url_rule
 
-        params = {}
-        if request_obj.view_args:
-            params = {**params, **request_obj.view_args}
+        view_args = request_obj.view_args
 
-        if request_obj.args:
-            params = {**params, **self._resolved_params(request_obj.args)}
+        args = self._resolved_params(request_obj.args)
 
-        if request_obj.cookies:
-            params = {**params, **self._resolved_params(request_obj.cookies)}
+        cookies = self._resolved_params(request_obj.cookies)
 
         if request_obj.is_json:
             json = request_obj.get_json()
         else:
             json = None
 
-        return method, route, params, json
+        return method, route, view_args, args, cookies, json
 
     def _resolved_params(self, payload: MultiDict) -> dict:
         # payload.to_dict(flat=False) serializing all arguments as list for correct receipt of
@@ -135,6 +133,14 @@ class First:
                 serialized_payload[key] = value
 
         return serialized_payload
+
+    def _arg_to_list(self, args: dict, schema_fields: dict) -> dict:
+        for arg in args:
+            if isinstance(schema_fields[arg], marshmallow.fields.List) and not isinstance(
+                args[arg], list
+            ):
+                args[arg] = [args[arg]]
+        return args
 
     def _registration_swagger_ui_blueprint(self, swagger_ui_path: str | Path) -> None:
         swagger_ui = Blueprint(
@@ -162,7 +168,7 @@ class First:
     def _register_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
-            method, route, params, json = self._extract_data_from_request(request)
+            method, route, view_args, args, cookie, json = self._extract_data_from_request(request)
 
             if route not in self._mapped_routes_from_spec:
                 return
@@ -172,24 +178,39 @@ class First:
 
             route_as_in_spec = self.route_to_openapi_format(route)
 
-            if params:
-                params_schema = self.serialized_spec['paths'][route_as_in_spec][method][
-                    'parameters'
-                ]['schema']
-                try:
-                    for name, value in params.items():
-                        field_from_schema = params_schema().fields.get(name)
-                        if not isinstance(value, list) and isinstance(field_from_schema, List):
-                            params[name] = [value]
+            paths_schemas = self.serialized_spec['paths']
+            method_schema = paths_schemas[route_as_in_spec][method]
 
-                    request.first_args = params_schema().load(params)
-                except (ValueError, ValidationError) as e:
+            request.first_view_args = {}
+            request.first_args = {}
+            request.first_cookie = {}
+
+            if view_args:
+                view_args_schema = method_schema['parameters']['view_args']
+                try:
+                    request.first_view_args = view_args_schema().load(view_args)
+                except ValidationError as e:
+                    raise FirstRequestPathArgsValidation(str(e))
+
+            if args:
+                args_schema = method_schema['parameters']['args']
+                try:
+                    schema_fields = args_schema().fields
+                    converted_args = self._arg_to_list(args, schema_fields)
+                    request.first_args = args_schema().load(converted_args)
+                except ValidationError as e:
                     raise FirstRequestArgsValidation(str(e))
 
+            if cookie:
+                cookie_schema = method_schema['parameters']['cookie']
+                try:
+                    request.first_cookie = cookie_schema().load(cookie)
+                except ValidationError as e:
+                    raise FirstRequestCookieValidation(str(e))
+
             if json:
-                json_schema = self.serialized_spec['paths'][route_as_in_spec][method][
-                    'requestBody'
-                ]['content'][request.content_type]['schema']
+                content = method_schema['requestBody']['content']
+                json_schema = content[request.content_type]['schema']
                 try:
                     if isinstance(json, list):
                         request.first_json = json_schema._load(json, None)
@@ -207,7 +228,7 @@ class First:
     def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
-            method, route, params, _ = self._extract_data_from_request(request)
+            method, route, _, _, _, json = self._extract_data_from_request(request)
             json = response.get_json()
 
             if route not in self._mapped_routes_from_spec:

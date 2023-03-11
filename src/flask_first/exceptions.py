@@ -22,8 +22,16 @@ class FirstValidation(FirstException):
     """Exception for request validation error."""
 
 
-class FirstRequestArgsValidation(FirstValidation):
+class FirstRequestPathArgsValidation(FirstValidation):
     """Exception for path-parameters validation error."""
+
+
+class FirstRequestArgsValidation(FirstValidation):
+    """Exception for request arguments validation error."""
+
+
+class FirstRequestCookieValidation(FirstValidation):
+    """Exception for request cookie validation error."""
 
 
 class FirstRequestJSONValidation(FirstValidation):
@@ -37,8 +45,18 @@ class FirstResponseJSONValidation(FirstValidation):
 def register_errors(app: Flask) -> None:
     """Registering handlers for common errors."""
 
+    @app.errorhandler(FirstRequestPathArgsValidation)
+    def path_args_validation_exception(exc) -> Response:
+        current_app.logger.debug(exc)
+        return _bad_request(str(exc))
+
     @app.errorhandler(FirstRequestArgsValidation)
     def args_validation_exception(exc) -> Response:
+        current_app.logger.debug(exc)
+        return _bad_request(str(exc))
+
+    @app.errorhandler(FirstRequestCookieValidation)
+    def cookie_validation_exception(exc) -> Response:
         current_app.logger.debug(exc)
         return _bad_request(str(exc))
 

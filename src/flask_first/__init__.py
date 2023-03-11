@@ -30,7 +30,7 @@ from .exceptions import register_errors
 from .schema.tools import convert_schemas
 from .schema.tools import resolving_refs
 
-__version__ = '0.11.0'
+__version__ = '0.12.0'
 
 
 class First:

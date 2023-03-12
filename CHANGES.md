@@ -1,3 +1,13 @@
+## Version 0.12.1
+
+* Fix arguments validation.
+
+* ## Version 0.12.0
+
+* Validating and serializing arguments from `request.view_args` to `request.first_view_args`.
+* Validating and serializing arguments from `request.args` to `request.first_args`.
+* Validating and serializing arguments from `request.cookies` to `request.first_cookies`.
+
 ## Version 0.11.0
 
 * Add using marshmallow schemas for validation and serialization data.

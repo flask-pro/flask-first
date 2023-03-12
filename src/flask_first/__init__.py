@@ -30,7 +30,7 @@ from .exceptions import register_errors
 from .schema.tools import convert_schemas
 from .schema.tools import resolving_refs
 
-__version__ = '0.12.0'
+__version__ = '0.12.1'
 
 
 class First:
@@ -136,10 +136,14 @@ class First:
 
     def _arg_to_list(self, args: dict, schema_fields: dict) -> dict:
         for arg in args:
-            if isinstance(schema_fields[arg], marshmallow.fields.List) and not isinstance(
-                args[arg], list
-            ):
+            arg_value = schema_fields.get(arg, ...)
+
+            if arg_value is ...:
+                continue
+
+            if isinstance(arg_value, marshmallow.fields.List) and not isinstance(args[arg], list):
                 args[arg] = [args[arg]]
+
         return args
 
     def _registration_swagger_ui_blueprint(self, swagger_ui_path: str | Path) -> None:

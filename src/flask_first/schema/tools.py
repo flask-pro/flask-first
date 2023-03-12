@@ -28,9 +28,12 @@ def _resolving_all_refs(raw_schema: dict, schema: dict) -> dict | list:
     return schema
 
 
-def _from_list_to_schema(parameters: list) -> dict:
+def _make_param_schema(parameters: list, type_params: str) -> dict | None:
     schema = {'type': 'object', 'additionalProperties': False, 'properties': {}}
     for param in parameters:
+        if type_params != param['in']:
+            continue
+
         schema['properties'][param['name']] = param['schema']
         required_param_list = schema.get('required')
         required_param = param.get('required')
@@ -39,7 +42,30 @@ def _from_list_to_schema(parameters: list) -> dict:
                 schema['required'].append(param['name'])
             else:
                 schema['required'] = [param['name']]
-    return schema
+
+    if schema['properties']:
+        return schema
+    else:
+        return
+
+
+def _from_list_to_schemas(parameters: list) -> dict:
+    view_args = _make_param_schema(parameters, 'path')
+    args = _make_param_schema(parameters, 'query')
+    headers = _make_param_schema(parameters, 'header')
+    cookies = _make_param_schema(parameters, 'cookie')
+
+    schemas = {}
+    if view_args:
+        schemas['view_args'] = view_args
+    if args:
+        schemas['args'] = args
+    if headers:
+        schemas['headers'] = headers
+    if cookies:
+        schemas['cookies'] = cookies
+
+    return schemas
 
 
 def _convert_parameters_to_schema(resolved_schema: dict) -> dict:
@@ -54,10 +80,10 @@ def _convert_parameters_to_schema(resolved_schema: dict) -> dict:
             if not combined_params:
                 continue
 
-            parameters_schema = _from_list_to_schema(combined_params)
+            parameters_schemas = _from_list_to_schemas(combined_params)
 
             # Adding key `schema` for create regular structure. For simple using.
-            path_item[method]['parameters'] = {'schema': parameters_schema}
+            path_item[method]['parameters'] = parameters_schemas
     return schema
 
 
@@ -72,7 +98,9 @@ def convert_schemas(resolved_schema: dict) -> dict | list:
     converted_schema = deepcopy(resolved_schema)
     if isinstance(converted_schema, dict):
         for key, value in converted_schema.items():
-            if key == 'schema':
+            if key in {'view_args', 'args', 'cookie'}:
+                converted_schema[key] = make_marshmallow_schema(value)
+            elif key == 'schema':
                 converted_schema['schema'] = make_marshmallow_schema(value)
             elif key == 'schemas':
                 for schema_name, schema_value in value.items():

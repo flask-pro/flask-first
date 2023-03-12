@@ -5,8 +5,9 @@ Flask extension for using "specification first" principle.
 Features:
 
 * `Application Factory` supported.
-* Validating and serializing arguments from `request.args`, `request.view_args`
-  and `request.cookies` to `request.first_args`.
+* Validating and serializing arguments from `request.view_args` to `request.first_view_args`.
+* Validating and serializing arguments from `request.args` to `request.first_args`.
+* Validating and serializing arguments from `request.cookies` to `request.first_cookies`.
 * Validating JSON from request.
 * Validating JSON from response.
 * Provides a Swagger UI.

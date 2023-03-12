@@ -386,7 +386,6 @@ def test_specification__param_as_list():
         assert r.json == {'param_as_list': [test_uuid]}
 
 
-@pytest.mark.xfail(reason='Hashmap not implemented')
 def test_specification__not_defined_name_key():
     app = Flask('testing_not_defined_name_key')
     app.debug = 1

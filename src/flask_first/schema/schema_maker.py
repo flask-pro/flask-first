@@ -1,4 +1,5 @@
 from marshmallow import fields
+from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow import validate
 from marshmallow import ValidationError
@@ -39,10 +40,15 @@ FIELDS_VIA_FORMATS = {
 }
 
 
-def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested | type:
+class HashmapSchema(Schema):
+    class Meta:
+        # Include unknown fields in the deserialized output
+        unknown = INCLUDE
 
+
+def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested | type:
     if schema.get('properties') is None and schema['additionalProperties'].get('oneOf'):
-        raise NotImplementedError('Hashmap not implemented.')
+        return HashmapSchema
 
     fields_obj = {}
     for field_name, field_schema in schema['properties'].items():

@@ -196,8 +196,8 @@ class First:
                 args_schema = method_schema['parameters']['args']
                 try:
                     schema_fields = args_schema().fields
-                    converted_args = self._arg_to_list(args, schema_fields)
-                    request.first_args = args_schema().load(converted_args)
+                    args_with_args_as_list = self._arg_to_list(args, schema_fields)
+                    request.first_args = args_schema().load(args_with_args_as_list)
                 except ValidationError as e:
                     raise FirstRequestArgsValidation(str(e))
 

@@ -29,10 +29,9 @@ def test_specification__non_exist_args():
 
     app = create_app()
 
-    with app.test_client() as test_client:
-        with pytest.raises(FirstRequestArgsValidation) as e:
-            test_client.get(
-                '/parameters_endpoint',
-                query_string={'non_exist_arg': 'NON_EXIST_ARGS'},
-            )
-        assert str(FirstRequestArgsValidation) in str(e.type)
+    with pytest.raises(FirstRequestArgsValidation) as e:
+        app.test_client().get(
+            '/parameters_endpoint',
+            query_string={'non_exist_arg': 'NON_EXIST_ARGS'},
+        )
+    assert str(FirstRequestArgsValidation) in str(e.type)

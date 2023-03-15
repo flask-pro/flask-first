@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import pytest
 from flask import Flask
 from flask import request
 from flask_first import First
+from flask_first.exceptions import FirstRequestArgsValidation
 
 from .conftest import BASEDIR
 
@@ -23,13 +25,15 @@ def test_specification__non_exist_args():
         app.config['FIRST_RESPONSE_VALIDATION'] = True
         first.init_app(app)
         first.add_view_func(mini_endpoint)
+
         return app
 
     app = create_app()
 
     with app.test_client() as test_client:
-        r = test_client.get(
-            '/parameters_endpoint',
-            query_string={'non_exist_arg': 'NON_EXIST_ARGS'},
-        )
-        assert r.status_code == 400
+        with pytest.raises(FirstRequestArgsValidation) as e:
+            test_client.get(
+                '/parameters_endpoint',
+                query_string={'non_exist_arg': 'NON_EXIST_ARGS'},
+            )
+        assert str(FirstRequestArgsValidation) in str(e.type)

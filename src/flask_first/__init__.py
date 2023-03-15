@@ -29,7 +29,7 @@ from .exceptions import FirstValidation
 from .schema.tools import convert_schemas
 from .schema.tools import resolving_refs
 
-__version__ = '0.12.1'
+__version__ = '0.13.0'
 
 
 class First:

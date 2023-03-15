@@ -25,7 +25,6 @@ def test_specification__non_exist_args():
         app.config['FIRST_RESPONSE_VALIDATION'] = True
         first.init_app(app)
         first.add_view_func(mini_endpoint)
-
         return app
 
     app = create_app()

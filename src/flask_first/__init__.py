@@ -26,11 +26,10 @@ from .exceptions import FirstRequestJSONValidation
 from .exceptions import FirstRequestPathArgsValidation
 from .exceptions import FirstResponseJSONValidation
 from .exceptions import FirstValidation
-from .exceptions import register_errors
 from .schema.tools import convert_schemas
 from .schema.tools import resolving_refs
 
-__version__ = '0.12.1'
+__version__ = '0.13.0'
 
 
 class First:
@@ -291,7 +290,6 @@ class First:
     def init_app(self, app: Flask) -> None:
         self.app = app
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
-        register_errors(self.app)
         self.app.extensions['first'] = self
 
         if self.swagger_ui_path:

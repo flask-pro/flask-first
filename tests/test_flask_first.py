@@ -7,6 +7,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask_first import First
+from flask_first.exceptions import FirstRequestPathArgsValidation
 
 from .conftest import BASEDIR
 
@@ -85,9 +86,10 @@ def test_specification__bad_uuid_from_path_params(fx_app, fx_client, path_param)
 
     fx_app.extensions['first'].add_view_func(get_item)
 
-    r_get = fx_client.get(f'/items/{path_param}')
-    assert r_get.status_code == 400
-    assert "{'uuid': ['Not a valid UUID.']}" in r_get.json['description']
+    with pytest.raises(FirstRequestPathArgsValidation) as e:
+        fx_client.get(f'/items/{path_param}')
+    assert str(FirstRequestPathArgsValidation) in str(e.type)
+    assert "{'uuid': ['Not a valid UUID.']}" in e.value.args[0]
 
 
 def test_specification__all_type_url_parameters(fx_app, fx_client):

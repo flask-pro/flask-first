@@ -1,8 +1,16 @@
+## Version 0.13.1
+
+* Fix hashable field.
+
+## Version 0.13.0
+
+* Fix exceptions structure.
+
 ## Version 0.12.1
 
 * Fix arguments validation.
 
-* ## Version 0.12.0
+## Version 0.12.0
 
 * Validating and serializing arguments from `request.view_args` to `request.first_view_args`.
 * Validating and serializing arguments from `request.args` to `request.first_args`.

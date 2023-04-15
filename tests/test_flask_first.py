@@ -399,7 +399,12 @@ def test_specification__not_defined_name_key():
     def one_of_endpoint() -> dict:
         return {'name': 'Test_name'}
 
+    def sub_hashable_obj() -> dict:
+        return {'any_field': 'Test_name'}
+
     first.add_view_func(one_of_endpoint)
+    first.add_view_func(sub_hashable_obj)
 
     with app.test_client() as test_client:
         assert test_client.get('/one_of_endpoint').status_code == 200
+        assert test_client.get('/sub_hashable_obj').status_code == 200

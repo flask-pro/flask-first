@@ -13,6 +13,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ObjectSchema"
+  /sub_hashable_obj:
+    get:
+      operationId: sub_hashable_obj
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubObjectSchema"
 components:
   schemas:
     ObjectSchema:
@@ -22,3 +32,11 @@ components:
         oneOf:
           - type: string
       example: "{'unknown_name': 'Value'}"
+    SubObjectSchema:
+      type: object
+      nullable: true
+      additionalProperties: false
+      properties:
+          any_field:
+              $ref: "#/components/schemas/ObjectSchema"
+      example: "{'unknown_name': 'Nested hashmap'}"

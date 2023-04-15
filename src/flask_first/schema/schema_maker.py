@@ -1,8 +1,13 @@
+from typing import Any
+
 from marshmallow import fields
 from marshmallow import INCLUDE
 from marshmallow import Schema
 from marshmallow import validate
 from marshmallow import ValidationError
+from marshmallow.fields import Boolean
+from marshmallow.fields import Field
+from marshmallow.fields import Nested
 
 from .custom_fields import AllOf
 from .custom_fields import AnyOf
@@ -18,6 +23,10 @@ class BytesField(fields.Field):
 
         if value is None or value == b'':
             raise ValidationError('Invalid value')
+
+
+class HashmapField(fields.Field):
+    pass
 
 
 FIELDS_VIA_TYPES = {
@@ -47,12 +56,16 @@ class HashmapSchema(Schema):
 
 
 def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested | type:
-    if schema.get('properties') is None and schema['additionalProperties'].get('oneOf'):
-        return HashmapSchema
 
     fields_obj = {}
     for field_name, field_schema in schema['properties'].items():
-        if field_schema['type'] == 'object':
+        if (
+            field_schema.get('additionalProperties')
+            and isinstance(field_schema['additionalProperties'], dict)
+            and field_schema['additionalProperties'].get('oneOf')
+        ):
+            field = HashmapField()
+        elif field_schema['type'] == 'object':
             field = make_marshmallow_schema(field_schema, as_nested=True)
         else:
             field = make_marshmallow_schema(field_schema)
@@ -107,7 +120,9 @@ def _make_field_validators(schema: dict) -> list[validate.Validator]:
     return validators
 
 
-def make_marshmallow_schema(schema: dict, as_nested: bool = False) -> fields.Field:
+def make_marshmallow_schema(
+    schema: dict, as_nested: bool = False
+) -> type[HashmapSchema] | Field | Nested | type | Boolean | Any:
     if 'nullable' in schema and schema.get('type', ...) is ...:
         field = FIELDS_VIA_TYPES['boolean']()
     elif 'allOf' in schema:
@@ -118,6 +133,12 @@ def make_marshmallow_schema(schema: dict, as_nested: bool = False) -> fields.Fie
         field = _make_multiple_field(schema['oneOf'], 'oneOf')
     elif schema.get('format'):
         field = FIELDS_VIA_FORMATS[schema['format']]()
+    elif (
+        schema.get('properties') is None
+        and schema['type'] == 'object'
+        and schema['additionalProperties'].get('oneOf')
+    ):
+        field = HashmapSchema
     elif schema['type'] == 'object':
         field = _make_object_field(schema, as_nested=as_nested)
     elif schema['type'] == 'array':

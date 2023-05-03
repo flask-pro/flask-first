@@ -1,3 +1,7 @@
+## Version 0.13.2
+
+* Fix cookie validation.
+
 ## Version 0.13.1
 
 * Fix hashable field.

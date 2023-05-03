@@ -29,7 +29,7 @@ from .exceptions import FirstValidation
 from .schema.tools import convert_schemas
 from .schema.tools import resolving_refs
 
-__version__ = '0.13.1'
+__version__ = '0.13.2'
 
 
 class First:
@@ -205,11 +205,13 @@ class First:
                     raise FirstRequestArgsValidation(str(e))
 
             if cookie:
-                cookie_schema = method_schema['parameters']['cookie']
-                try:
-                    request.first_cookie = cookie_schema().load(cookie)
-                except ValidationError as e:
-                    raise FirstRequestCookieValidation(str(e))
+                if 'parameters' in method_schema:
+                    if 'cookie' in method_schema['parameters']:
+                        cookie_schema = method_schema['parameters']['cookie']
+                        try:
+                            request.first_cookie = cookie_schema().load(cookie)
+                        except ValidationError as e:
+                            raise FirstRequestCookieValidation(str(e))
 
             if json:
                 content = method_schema['requestBody']['content']

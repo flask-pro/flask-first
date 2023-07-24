@@ -188,21 +188,33 @@ class First:
             request.first_args = {}
             request.first_cookie = {}
 
-            if view_args:
-                view_args_schema = method_schema['parameters']['view_args']
-                try:
-                    request.first_view_args = view_args_schema().load(view_args)
-                except ValidationError as e:
-                    raise FirstRequestPathArgsValidation(str(e))
+            params_schemas = method_schema.get('parameters')
+            if params_schemas:
 
-            if args:
-                args_schema = method_schema['parameters']['args']
-                try:
-                    schema_fields = args_schema().fields
-                    args_with_args_as_list = self._arg_to_list(args, schema_fields)
-                    request.first_args = args_schema().load(args_with_args_as_list)
-                except ValidationError as e:
-                    raise FirstRequestArgsValidation(str(e))
+                view_args_schema = params_schemas.get('view_args')
+                if view_args_schema:
+                    try:
+                        request.first_view_args = view_args_schema().load(view_args)
+                    except ValidationError as e:
+                        raise FirstRequestPathArgsValidation(str(e))
+
+                args_schema = params_schemas.get('args')
+                if args_schema:
+                    try:
+                        schema_fields = args_schema().fields
+                        args_with_args_as_list = self._arg_to_list(args, schema_fields)
+                        request.first_args = args_schema().load(args_with_args_as_list)
+                    except ValidationError as e:
+                        raise FirstRequestArgsValidation(str(e))
+
+            else:
+                if view_args:
+                    raise FirstRequestPathArgsValidation(
+                        'Path parameters of request not in specification.'
+                    )
+
+                if args:
+                    raise FirstRequestArgsValidation('Arguments of request not in specification.')
 
             if cookie:
                 if 'parameters' in method_schema:

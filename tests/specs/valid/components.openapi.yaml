@@ -19,7 +19,7 @@ paths:
 components:
   responses:
     ResponseObject:
-      description: response object
+      description: Response object
   examples:
     ExamplesObject:
       description: Short description for the example.

@@ -13,23 +13,18 @@ from flask import Response
 from flask import send_file
 from flask import url_for
 from marshmallow.exceptions import ValidationError
-from openapi_spec_validator import validate_spec
-from openapi_spec_validator.readers import read_from_filename
-from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
 from werkzeug.datastructures import MultiDict
 
-from .exceptions import FirstException
-from .exceptions import FirstOpenAPIValidation
-from .exceptions import FirstRequestArgsValidation
-from .exceptions import FirstRequestCookieValidation
-from .exceptions import FirstRequestJSONValidation
-from .exceptions import FirstRequestPathArgsValidation
-from .exceptions import FirstResponseJSONValidation
-from .exceptions import FirstValidation
-from .schema.tools import convert_schemas
-from .schema.tools import resolving_refs
+from .first import Specification
+from .first.exceptions import FirstException
+from .first.exceptions import FirstRequestArgsValidation
+from .first.exceptions import FirstRequestCookieValidation
+from .first.exceptions import FirstRequestJSONValidation
+from .first.exceptions import FirstRequestPathArgsValidation
+from .first.exceptions import FirstResponseJSONValidation
+from .first.exceptions import FirstValidation
 
-__version__ = '0.13.2'
+__version__ = '0.14.0'
 
 
 class First:
@@ -50,15 +45,7 @@ class First:
         if self.app is not None:
             self.init_app(app)
 
-        self.raw_spec, _ = read_from_filename(path_to_spec)
-        try:
-            validate_spec(self.raw_spec)
-        except OpenAPIValidationError as e:
-            raise FirstOpenAPIValidation(repr(e))
-
-        self.resolved_spec = resolving_refs(self.raw_spec)
-
-        self.serialized_spec = convert_schemas(self.resolved_spec)
+        self.spec = Specification(path_to_spec)
 
         self._mapped_routes_from_spec = []
 
@@ -69,7 +56,7 @@ class First:
     def _route_registration_in_flask(self, func: callable) -> None:
         route = method = ''
 
-        for path, path_item in self.resolved_spec['paths'].items():
+        for path, path_item in self.spec.resolved_spec['paths'].items():
             for method_name, operation in path_item.items():
                 if operation.get('operationId') == func.__name__:
                     route: str = path
@@ -78,7 +65,7 @@ class First:
         if not route:
             raise FirstException(f'Route function <{route}> not found in OpenAPI specification!')
 
-        params_schema = self.resolved_spec['paths'][route][method].get('parameters')
+        params_schema = self.spec.resolved_spec['paths'][route][method].get('parameters')
 
         if params_schema and '{' in route and '}' in route:
             path_params = re.findall(r'{(\S*?)}', route)
@@ -181,7 +168,7 @@ class First:
 
             route_as_in_spec = self.route_to_openapi_format(route)
 
-            paths_schemas = self.serialized_spec['paths']
+            paths_schemas = self.spec.serialized_spec['paths']
             method_schema = paths_schemas[route_as_in_spec][method]
 
             request.first_view_args = {}
@@ -254,7 +241,7 @@ class First:
             route_as_in_spec = self.route_to_openapi_format(route)
 
             try:
-                route_schema: dict = self.serialized_spec['paths'][route_as_in_spec]
+                route_schema: dict = self.spec.serialized_spec['paths'][route_as_in_spec]
             except KeyError as e:
                 raise FirstResponseJSONValidation(
                     f'Route <{e.args[0]}> not defined in specification.'

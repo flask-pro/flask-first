@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 from flask import request
-from flask_first.exceptions import FirstRequestArgsValidation
-from flask_first.exceptions import FirstRequestPathArgsValidation
+from flask_first.first.exceptions import FirstRequestArgsValidation
+from flask_first.first.exceptions import FirstRequestPathArgsValidation
 
 from .conftest import BASEDIR
 

@@ -7,7 +7,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask_first import First
-from flask_first.exceptions import FirstRequestPathArgsValidation
+from flask_first.first.exceptions import FirstRequestPathArgsValidation
 
 from .conftest import BASEDIR
 

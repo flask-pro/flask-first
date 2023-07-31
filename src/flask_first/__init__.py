@@ -13,14 +13,12 @@ from flask import Response
 from flask import send_file
 from flask import url_for
 from marshmallow.exceptions import ValidationError
+from werkzeug.datastructures import Headers
 from werkzeug.datastructures import MultiDict
 
+from .first import RequestSerializer
 from .first import Specification
 from .first.exceptions import FirstException
-from .first.exceptions import FirstRequestArgsValidation
-from .first.exceptions import FirstRequestCookieValidation
-from .first.exceptions import FirstRequestJSONValidation
-from .first.exceptions import FirstRequestPathArgsValidation
 from .first.exceptions import FirstResponseJSONValidation
 from .first.exceptions import FirstValidation
 
@@ -85,13 +83,15 @@ class First:
 
     def _extract_data_from_request(
         self, request_obj: Request
-    ) -> tuple[Any, str | None, dict[str, Any] | None, dict, dict, Any | None]:
+    ) -> tuple[Any, str | None, Headers, dict[str, Any] | None, dict, dict, Any | None]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
             route = request_obj.url_rule.rule
         else:
             route = request_obj.url_rule
+
+        headers = request_obj.headers
 
         view_args = request_obj.view_args
 
@@ -104,7 +104,7 @@ class First:
         else:
             json = None
 
-        return method, route, view_args, args, cookies, json
+        return method, route, headers, view_args, args, cookies, json
 
     def _resolved_params(self, payload: MultiDict) -> dict:
         # payload.to_dict(flat=False) serializing all arguments as list for correct receipt of
@@ -158,81 +158,58 @@ class First:
     def _register_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
-            method, route, view_args, args, cookie, json = self._extract_data_from_request(request)
+            if request.content_type != 'application/json' and request.method not in ('GET',):
+                return
+
+            if request.method in ('OPTIONS',):
+                return
+
+            (
+                method,
+                route,
+                headers,
+                view_args,
+                args,
+                cookies,
+                json,
+            ) = self._extract_data_from_request(request)
 
             if route not in self._mapped_routes_from_spec:
                 return
 
-            if method in ('options',):
-                return
-
             route_as_in_spec = self.route_to_openapi_format(route)
 
-            paths_schemas = self.spec.serialized_spec['paths']
-            method_schema = paths_schemas[route_as_in_spec][method]
-
-            request.first_view_args = {}
-            request.first_args = {}
-            request.first_cookie = {}
-
-            params_schemas = method_schema.get('parameters')
+            params_schemas = self.spec.serialized_spec['paths'][route_as_in_spec][method].get(
+                'parameters'
+            )
             if params_schemas:
-
-                view_args_schema = params_schemas.get('view_args')
-                if view_args_schema:
-                    try:
-                        request.first_view_args = view_args_schema().load(view_args)
-                    except ValidationError as e:
-                        raise FirstRequestPathArgsValidation(str(e))
-
                 args_schema = params_schemas.get('args')
                 if args_schema:
-                    try:
-                        schema_fields = args_schema().fields
-                        args_with_args_as_list = self._arg_to_list(args, schema_fields)
-                        request.first_args = args_schema().load(args_with_args_as_list)
-                    except ValidationError as e:
-                        raise FirstRequestArgsValidation(str(e))
+                    schema_fields = args_schema().fields
+                    args = self._arg_to_list(args, schema_fields)
 
-            else:
-                if view_args:
-                    raise FirstRequestPathArgsValidation(
-                        'Path parameters of request not in specification.'
-                    )
+            rv = RequestSerializer(
+                self.spec,
+                method,
+                route_as_in_spec,
+                headers=dict(headers),
+                cookies=cookies,
+                path_params=view_args,
+                params=args,
+                json=json,
+            )
+            rv.validate()
 
-                if args:
-                    raise FirstRequestArgsValidation('Arguments of request not in specification.')
-
-            if cookie:
-                if 'parameters' in method_schema:
-                    if 'cookie' in method_schema['parameters']:
-                        cookie_schema = method_schema['parameters']['cookie']
-                        try:
-                            request.first_cookie = cookie_schema().load(cookie)
-                        except ValidationError as e:
-                            raise FirstRequestCookieValidation(str(e))
-
-            if json:
-                content = method_schema['requestBody']['content']
-                json_schema = content[request.content_type]['schema']
-                try:
-                    if isinstance(json, list):
-                        request.first_json = json_schema._load(json, None)
-                    elif 'allOf' in json_schema._declared_fields:
-                        request.first_json = json_schema().load({'allOf': json})
-                    elif 'anyOf' in json_schema._declared_fields:
-                        request.first_json = json_schema().load({'anyOf': json})
-                    elif 'oneOf' in json_schema._declared_fields:
-                        request.first_json = json_schema().load({'oneOf': json})
-                    else:
-                        request.first_json = json_schema().load(json)
-                except ValidationError as e:
-                    raise FirstRequestJSONValidation(str(e))
+            request.first_headers = rv.serialized_headers
+            request.first_view_args = rv.serialized_path_params
+            request.first_args = rv.serialized_params
+            request.first_cookies = rv.serialized_cookies
+            request.first_json = rv.serialized_json
 
     def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
-            method, route, _, _, _, json = self._extract_data_from_request(request)
+            method, route, _, _, _, _, json = self._extract_data_from_request(request)
             json = response.get_json()
 
             if route not in self._mapped_routes_from_spec:

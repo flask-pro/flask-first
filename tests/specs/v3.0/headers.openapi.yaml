@@ -5,7 +5,7 @@ info:
 paths:
   /endpoint_with_header:
     parameters:
-      - name: from_header
+      - name: From-Header
         in: header
         description: parameter from header
         required: true

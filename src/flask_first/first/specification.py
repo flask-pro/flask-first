@@ -69,7 +69,7 @@ class Specification:
     def _from_list_to_schemas(self, parameters: list) -> dict:
         view_args = self._make_param_schema(parameters, 'path')
         args = self._make_param_schema(parameters, 'query')
-        headers = self._make_param_schema(parameters, 'header')
+        header_args = self._make_param_schema(parameters, 'header')
         cookies = self._make_param_schema(parameters, 'cookie')
 
         schemas = {}
@@ -77,8 +77,8 @@ class Specification:
             schemas['view_args'] = view_args
         if args:
             schemas['args'] = args
-        if headers:
-            schemas['headers'] = headers
+        if header_args:
+            schemas['header_args'] = header_args
         if cookies:
             schemas['cookies'] = cookies
 
@@ -111,7 +111,7 @@ class Specification:
         converted_schema = deepcopy(resolved_schema)
         if isinstance(converted_schema, dict):
             for key, value in converted_schema.items():
-                if key in {'view_args', 'args', 'cookie'}:
+                if key in {'header_args', 'view_args', 'args', 'cookie'}:
                     converted_schema[key] = make_marshmallow_schema(value)
                 elif key == 'schema':
                     converted_schema['schema'] = make_marshmallow_schema(value)

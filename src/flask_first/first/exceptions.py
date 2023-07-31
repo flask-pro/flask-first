@@ -13,6 +13,18 @@ class FirstValidation(FirstException):
     """Exception for request validation error."""
 
 
+class FirstEndpointValidation(FirstValidation):
+    """Exception for endpoint validation error."""
+
+
+class FirstRequestHeadersValidation(FirstValidation):
+    """Exception for headers validation error."""
+
+
+class FirstRequestCookiesValidation(FirstValidation):
+    """Exception for cookies validation error."""
+
+
 class FirstRequestPathArgsValidation(FirstValidation):
     """Exception for path-parameters validation error."""
 

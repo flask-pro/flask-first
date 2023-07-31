@@ -1,3 +1,11 @@
+## Version 0.14.1
+
+* Fix README.md.
+
+## Version 0.14.0
+
+* Fix parameters validation.
+
 ## Version 0.13.2
 
 * Fix cookie validation.

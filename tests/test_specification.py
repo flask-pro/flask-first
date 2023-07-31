@@ -4,7 +4,7 @@ import pytest
 from flask import Flask
 from flask import request
 from flask_first import First
-from flask_first.exceptions import FirstOpenAPIValidation
+from flask_first.first.exceptions import FirstOpenAPIValidation
 
 from .conftest import BASEDIR
 

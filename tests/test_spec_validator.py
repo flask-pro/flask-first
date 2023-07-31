@@ -22,6 +22,8 @@ def test_spec_validator(spec):
 
     first.add_view_func(get_endpoint)
 
+    app.test_client().set_cookie('Test-Cookie')
+
     r = app.test_client().get('/get_endpoint', follow_redirects=True)
     assert r.status_code == 200
     assert r.json['message'] == 'OK'

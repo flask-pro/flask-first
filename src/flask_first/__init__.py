@@ -13,23 +13,16 @@ from flask import Response
 from flask import send_file
 from flask import url_for
 from marshmallow.exceptions import ValidationError
-from openapi_spec_validator import validate_spec
-from openapi_spec_validator.readers import read_from_filename
-from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
+from werkzeug.datastructures import Headers
 from werkzeug.datastructures import MultiDict
 
-from .exceptions import FirstException
-from .exceptions import FirstOpenAPIValidation
-from .exceptions import FirstRequestArgsValidation
-from .exceptions import FirstRequestCookieValidation
-from .exceptions import FirstRequestJSONValidation
-from .exceptions import FirstRequestPathArgsValidation
-from .exceptions import FirstResponseJSONValidation
-from .exceptions import FirstValidation
-from .schema.tools import convert_schemas
-from .schema.tools import resolving_refs
+from .first import RequestSerializer
+from .first import Specification
+from .first.exceptions import FirstException
+from .first.exceptions import FirstResponseJSONValidation
+from .first.exceptions import FirstValidation
 
-__version__ = '0.13.2'
+__version__ = '0.14.1'
 
 
 class First:
@@ -50,15 +43,7 @@ class First:
         if self.app is not None:
             self.init_app(app)
 
-        self.raw_spec, _ = read_from_filename(path_to_spec)
-        try:
-            validate_spec(self.raw_spec)
-        except OpenAPIValidationError as e:
-            raise FirstOpenAPIValidation(repr(e))
-
-        self.resolved_spec = resolving_refs(self.raw_spec)
-
-        self.serialized_spec = convert_schemas(self.resolved_spec)
+        self.spec = Specification(path_to_spec)
 
         self._mapped_routes_from_spec = []
 
@@ -69,7 +54,7 @@ class First:
     def _route_registration_in_flask(self, func: callable) -> None:
         route = method = ''
 
-        for path, path_item in self.resolved_spec['paths'].items():
+        for path, path_item in self.spec.resolved_spec['paths'].items():
             for method_name, operation in path_item.items():
                 if operation.get('operationId') == func.__name__:
                     route: str = path
@@ -78,7 +63,7 @@ class First:
         if not route:
             raise FirstException(f'Route function <{route}> not found in OpenAPI specification!')
 
-        params_schema = self.resolved_spec['paths'][route][method].get('parameters')
+        params_schema = self.spec.resolved_spec['paths'][route][method].get('parameters')
 
         if params_schema and '{' in route and '}' in route:
             path_params = re.findall(r'{(\S*?)}', route)
@@ -98,13 +83,15 @@ class First:
 
     def _extract_data_from_request(
         self, request_obj: Request
-    ) -> tuple[Any, str | None, dict[str, Any] | None, dict, dict, Any | None]:
+    ) -> tuple[Any, str | None, Headers, dict[str, Any] | None, dict, dict, Any | None]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
             route = request_obj.url_rule.rule
         else:
             route = request_obj.url_rule
+
+        headers = request_obj.headers
 
         view_args = request_obj.view_args
 
@@ -117,7 +104,7 @@ class First:
         else:
             json = None
 
-        return method, route, view_args, args, cookies, json
+        return method, route, headers, view_args, args, cookies, json
 
     def _resolved_params(self, payload: MultiDict) -> dict:
         # payload.to_dict(flat=False) serializing all arguments as list for correct receipt of
@@ -171,69 +158,58 @@ class First:
     def _register_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
-            method, route, view_args, args, cookie, json = self._extract_data_from_request(request)
+            if request.content_type != 'application/json' and request.method not in ('GET',):
+                return
+
+            if request.method in ('OPTIONS',):
+                return
+
+            (
+                method,
+                route,
+                headers,
+                view_args,
+                args,
+                cookies,
+                json,
+            ) = self._extract_data_from_request(request)
 
             if route not in self._mapped_routes_from_spec:
                 return
 
-            if method in ('options',):
-                return
-
             route_as_in_spec = self.route_to_openapi_format(route)
 
-            paths_schemas = self.serialized_spec['paths']
-            method_schema = paths_schemas[route_as_in_spec][method]
-
-            request.first_view_args = {}
-            request.first_args = {}
-            request.first_cookie = {}
-
-            if view_args:
-                view_args_schema = method_schema['parameters']['view_args']
-                try:
-                    request.first_view_args = view_args_schema().load(view_args)
-                except ValidationError as e:
-                    raise FirstRequestPathArgsValidation(str(e))
-
-            if args:
-                args_schema = method_schema['parameters']['args']
-                try:
+            params_schemas = self.spec.serialized_spec['paths'][route_as_in_spec][method].get(
+                'parameters'
+            )
+            if params_schemas:
+                args_schema = params_schemas.get('args')
+                if args_schema:
                     schema_fields = args_schema().fields
-                    args_with_args_as_list = self._arg_to_list(args, schema_fields)
-                    request.first_args = args_schema().load(args_with_args_as_list)
-                except ValidationError as e:
-                    raise FirstRequestArgsValidation(str(e))
+                    args = self._arg_to_list(args, schema_fields)
 
-            if cookie:
-                if 'parameters' in method_schema:
-                    if 'cookie' in method_schema['parameters']:
-                        cookie_schema = method_schema['parameters']['cookie']
-                        try:
-                            request.first_cookie = cookie_schema().load(cookie)
-                        except ValidationError as e:
-                            raise FirstRequestCookieValidation(str(e))
+            rv = RequestSerializer(
+                self.spec,
+                method,
+                route_as_in_spec,
+                headers=dict(headers),
+                cookies=cookies,
+                path_params=view_args,
+                params=args,
+                json=json,
+            )
+            rv.validate()
 
-            if json:
-                content = method_schema['requestBody']['content']
-                json_schema = content[request.content_type]['schema']
-                try:
-                    if isinstance(json, list):
-                        request.first_json = json_schema._load(json, None)
-                    elif 'allOf' in json_schema._declared_fields:
-                        request.first_json = json_schema().load({'allOf': json})
-                    elif 'anyOf' in json_schema._declared_fields:
-                        request.first_json = json_schema().load({'anyOf': json})
-                    elif 'oneOf' in json_schema._declared_fields:
-                        request.first_json = json_schema().load({'oneOf': json})
-                    else:
-                        request.first_json = json_schema().load(json)
-                except ValidationError as e:
-                    raise FirstRequestJSONValidation(str(e))
+            request.first_headers = rv.serialized_headers
+            request.first_view_args = rv.serialized_path_params
+            request.first_args = rv.serialized_params
+            request.first_cookies = rv.serialized_cookies
+            request.first_json = rv.serialized_json
 
     def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
-            method, route, _, _, _, json = self._extract_data_from_request(request)
+            method, route, _, _, _, _, json = self._extract_data_from_request(request)
             json = response.get_json()
 
             if route not in self._mapped_routes_from_spec:
@@ -242,7 +218,7 @@ class First:
             route_as_in_spec = self.route_to_openapi_format(route)
 
             try:
-                route_schema: dict = self.serialized_spec['paths'][route_as_in_spec]
+                route_schema: dict = self.spec.serialized_spec['paths'][route_as_in_spec]
             except KeyError as e:
                 raise FirstResponseJSONValidation(
                     f'Route <{e.args[0]}> not defined in specification.'

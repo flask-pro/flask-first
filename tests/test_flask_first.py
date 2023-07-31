@@ -7,7 +7,7 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask_first import First
-from flask_first.exceptions import FirstRequestPathArgsValidation
+from flask_first.first.exceptions import FirstRequestPathArgsValidation
 
 from .conftest import BASEDIR
 
@@ -208,12 +208,12 @@ def test_specification__headers():
     first = First(full_spec, app)
 
     def endpoint_with_header() -> dict:
-        return {'message': request.headers['Name']}
+        return {'message': request.headers['From-Header']}
 
     first.add_view_func(endpoint_with_header)
 
     with app.test_client() as test_client:
-        r = test_client.get('/endpoint_with_header', headers={'Name': 'test_header'})
+        r = test_client.get('/endpoint_with_header', headers={'From-Header': 'test_header'})
         assert r.status_code == 200
         assert r.json['message'] == 'test_header'
 
@@ -287,28 +287,16 @@ def test_specification__response_obj():
         assert r.json == {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}
 
 
-def test_specification__resolving_references():
+def test_specification__resolving_references(fx_create_app):
     def mini_endpoint(uuid: str) -> dict:
         return {'message': str(uuid)}
 
-    first = First(Path(BASEDIR, 'specs/v3.0/ref.openapi.yaml'))
+    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.0/ref.openapi.yaml'), (mini_endpoint,))
 
-    def create_app():
-        app = Flask('object_app')
-        app.debug = 1
-        app.testing = 1
-        app.config['FIRST_RESPONSE_VALIDATION'] = True
-        first.init_app(app)
-        first.add_view_func(mini_endpoint)
-        return app
-
-    app = create_app()
-
-    with app.test_client() as test_client:
-        test_uuid = str(uuid.uuid4())
-        r = test_client.post(f'/mini_endpoint/{test_uuid}')
-        assert r.status_code == 200
-        assert r.json == {'message': test_uuid}
+    test_uuid = str(uuid.uuid4())
+    r = test_client.post(f'/mini_endpoint/{test_uuid}', json={'message': 'test_message'})
+    assert r.status_code == 200
+    assert r.json == {'message': test_uuid}
 
 
 def test_specification__params__format():

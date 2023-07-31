@@ -117,6 +117,10 @@ def _make_field_validators(schema: dict) -> list[validate.Validator]:
     if schema['type'] in ['integer', 'number']:
         validators.append(validate.Range(min=schema.get('minimum'), max=schema.get('maximum')))
 
+    required_values = schema.get('enum')
+    if required_values:
+        validators.append(validate.OneOf(required_values))
+
     return validators
 
 

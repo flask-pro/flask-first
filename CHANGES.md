@@ -1,3 +1,7 @@
+## Version 0.14.2
+
+* Fix case-sensitive url validation.
+
 ## Version 0.14.1
 
 * Fix README.md.

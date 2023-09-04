@@ -31,7 +31,7 @@ class RequestSerializer:
         self._paths_schema = self.spec.serialized_spec['paths']
 
         self.method = method.lower()
-        self.endpoint = endpoint.lower()
+        self.endpoint = endpoint
         self.headers = headers
         self.cookies = cookies
         self.path_params = path_params

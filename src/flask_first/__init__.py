@@ -22,7 +22,7 @@ from .first.exceptions import FirstException
 from .first.exceptions import FirstResponseJSONValidation
 from .first.exceptions import FirstValidation
 
-__version__ = '0.14.1'
+__version__ = '0.14.2'
 
 
 class First:

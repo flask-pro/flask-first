@@ -59,6 +59,7 @@ where = ["src"]
 legacy_tox_ini = """
     [tox]
     env_list =
+        py312
         py311
         py310
         py39

@@ -25,16 +25,16 @@ clean:
 	rm -rf dist/
 	rm -rf src/Flask_First.egg-info
 
-build: clean
-	python3 -m build
+build: clean venv
+	./venv/bin/python3 -m build
 
 install: build
 	./venv/bin/pip install dist/Flask-First-*.tar.gz
 
 upload_to_testpypi: build
-	python3 -m twine upload --repository testpypi dist/*
+	./venv/bin/python3 -m twine upload --repository testpypi dist/*
 
 upload_to_pypi: build
-	python3 -m twine upload --repository pypi dist/*
+	./venv/bin/python3 -m twine upload --repository pypi dist/*
 
 all: venv tox build

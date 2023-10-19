@@ -5,36 +5,36 @@ info:
 paths:
   /parameters_endpoint/{uuid_from_path}/{datetime_from_path}:
     parameters:
-      - name: uuid_from_path
-        in: path
-        description: parameter from path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: datetime_from_path
-        in: path
-        description: datetime from path
-        required: true
-        schema:
-          type: string
-          format: date-time
-      - name: uuid_from_query
-        in: query
-        description: uuid from query
-        schema:
-          type: string
-          format: uuid
-      - name: datetime_from_query
-        in: query
-        description: datetime from query
-        schema:
-          type: string
-          format: date-time
+    - name: uuid_from_path
+      in: path
+      description: parameter from path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: datetime_from_path
+      in: path
+      description: datetime from path
+      required: true
+      schema:
+        type: string
+        format: date-time
+    - name: uuid_from_query
+      in: query
+      description: uuid from query
+      schema:
+        type: string
+        format: uuid
+    - name: datetime_from_query
+      in: query
+      description: datetime from query
+      schema:
+        type: string
+        format: date-time
     get:
       operationId: mini_endpoint
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:

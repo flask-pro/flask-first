@@ -1,3 +1,69 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools>=42", "wheel"]
+
+[project]
+authors = [
+  {name = "Konstantin Fadeev", email = "fadeev@legalact.pro"}
+]
+classifiers = [
+  "Framework :: Flask",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3"
+]
+dependencies = [
+  'Flask>=2.0.2',
+  'openapi-spec-validator>=0.5.0',
+  'marshmallow>=3.14.1'
+]
+description = "Flask extension for using 'specification first' principle via OpenAPI specification"
+license = {file = "LICENSE"}
+name = "Flask-First"
+readme = "README.md"
+requires-python = ">=3.9"
+version = "0.14.3"
+
+[project.optional-dependencies]
+dev = [
+  "bandit==1.7.5",
+  "build==1.0.3",
+  "mypy==1.6.1",
+  "pre-commit==3.5.0",
+  "pytest==7.4.2",
+  "pytest-cov==4.1.0",
+  "python-dotenv==1.0.0",
+  "tox==4.11.3"
+]
+
+[project.urls]
+changelog = "https://github.com/flask-pro/flask-first/blob/master/CHANGES.md"
+repository = "https://github.com/flask-pro/flask-first"
+
+[tool.black]
+extend-exclude = '''
+# A regex preceded with ^/ will apply only to files and directories
+# in the root of the project.
+^/foo.py  # exclude a file named foo.py in the root of the project (in addition to the defaults)
+'''
+include = '\.pyi?$'
+line-length = 100
+skip-string-normalization = true
+target-version = ['py39']
+
+[tool.setuptools.packages.find]
+include = ["flask_first*"]
+where = ["src"]
+
+[tool.tox]
+legacy_tox_ini = """
+    [tox]
+    env_list =
+        py312
+        py311
+        py310
+        py39
+    [testenv]
+    extras = dev
+    commands = pytest -s -x --cov-report term-missing:skip-covered --cov=../src/flask_first tests/
+"""

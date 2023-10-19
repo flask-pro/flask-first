@@ -22,8 +22,6 @@ from .first.exceptions import FirstException
 from .first.exceptions import FirstResponseJSONValidation
 from .first.exceptions import FirstValidation
 
-__version__ = '0.14.2'
-
 
 class First:
     """This class is used to generation routes from OpenAPI specification."""
@@ -32,9 +30,9 @@ class First:
 
     def __init__(
         self,
-        path_to_spec: str | Path,
+        path_to_spec: str or Path,
         app: Flask = None,
-        swagger_ui_path: str | Path = None,
+        swagger_ui_path: str or Path = None,
     ) -> None:
         self.app = app
         self.path_to_spec = path_to_spec
@@ -83,7 +81,7 @@ class First:
 
     def _extract_data_from_request(
         self, request_obj: Request
-    ) -> tuple[Any, str | None, Headers, dict[str, Any] | None, dict, dict, Any | None]:
+    ) -> tuple[Any, str or None, Headers, dict[str, Any] or None, dict, dict, Any or None]:
         method = request_obj.method.lower()
 
         if request_obj.url_rule is not None:
@@ -132,7 +130,7 @@ class First:
 
         return args
 
-    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str | Path) -> None:
+    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str or Path) -> None:
         swagger_ui = Blueprint(
             'swagger_ui',
             __name__,

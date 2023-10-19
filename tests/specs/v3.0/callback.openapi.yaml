@@ -6,15 +6,15 @@ paths:
   /callback_test_endpoint:
     post:
       parameters:
-        - name: callback_url
-          in: query
-          required: true
-          description: Asynchronic response URL.
-          schema:
-            type: string
+      - name: callback_url
+        in: query
+        required: true
+        description: Asynchronic response URL.
+        schema:
+          type: string
       operationId: callback_test_endpoint
       responses:
-        "201":
+        '201':
           description: Created
           content:
             application/json:

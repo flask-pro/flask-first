@@ -17,22 +17,22 @@ paths:
                   format: binary
       responses:
         204:
-          $ref: "#/components/responses/EmptyBody"
+          $ref: '#/components/responses/EmptyBody'
     get:
       operationId: download_file
       responses:
         200:
           description: OK
           content:
-            "*/*":
+            '*/*':
               schema:
                 type: string
                 format: binary
 components:
   responses:
     EmptyBody:
-      description: "Response body is empty."
+      description: Response body is empty.
       content:
-        "text/html; charset=utf-8":
+        text/html; charset=utf-8:
           schema:
             nullable: true

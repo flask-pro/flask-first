@@ -7,29 +7,29 @@ paths:
     post:
       operationId: all_of_endpoint
       requestBody:
-        $ref: "#/components/requestBodies/ObjectSchema"
+        $ref: '#/components/requestBodies/ObjectSchema'
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ObjectSchema"
+                $ref: '#/components/schemas/ObjectSchema'
 components:
   schemas:
     ObjectSchema:
       allOf:
-        - $ref: '#/components/schemas/NewObjectSchema'
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
+      - $ref: '#/components/schemas/NewObjectSchema'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            type: integer
     NewObjectSchema:
       type: object
       required:
-        - name
+      - name
       properties:
         name:
           type: string
@@ -37,6 +37,6 @@ components:
     ObjectSchema:
       description: Object.
       content:
-        'application/json':
+        application/json:
           schema:
             $ref: '#/components/schemas/ObjectSchema'

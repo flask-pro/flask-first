@@ -19,3 +19,5 @@ __pycache__/
 
 # IDE and editors.
 .idea/
+
+.tox/

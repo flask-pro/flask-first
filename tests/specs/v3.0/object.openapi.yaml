@@ -7,19 +7,19 @@ paths:
     get:
       operationId: mini_endpoint
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: object
                 required:
-                  - list
+                - list
                 properties:
                   one:
                     type: object
                     required:
-                      - one_message
+                    - one_message
                     properties:
                       one_message:
                         type: string
@@ -28,7 +28,7 @@ paths:
                     items:
                       type: object
                       required:
-                        - list_message
+                      - list_message
                       properties:
                         list_message:
                           type: string

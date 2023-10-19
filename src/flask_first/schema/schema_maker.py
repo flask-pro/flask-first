@@ -55,8 +55,7 @@ class HashmapSchema(Schema):
         unknown = INCLUDE
 
 
-def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested | type:
-
+def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested or type:
     fields_obj = {}
     for field_name, field_schema in schema['properties'].items():
         if (
@@ -126,7 +125,7 @@ def _make_field_validators(schema: dict) -> list[validate.Validator]:
 
 def make_marshmallow_schema(
     schema: dict, as_nested: bool = False
-) -> type[HashmapSchema] | Field | Nested | type | Boolean | Any:
+) -> type[HashmapSchema] or Field or Nested or type or Boolean or Any:
     if 'nullable' in schema and schema.get('type', ...) is ...:
         field = FIELDS_VIA_TYPES['boolean']()
     elif 'allOf' in schema:

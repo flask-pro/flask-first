@@ -1,3 +1,7 @@
+## Version 0.14.3
+
+* Add Python versions 3.9, 3.10, 3.11, 3.12 support.
+
 ## Version 0.14.2
 
 * Fix case-sensitive url validation.

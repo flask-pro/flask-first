@@ -1,47 +1,50 @@
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
-    hooks:
-      - id: pyupgrade
-        args: ["--py310-plus"]
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: check-ast
-      - id: fix-byte-order-marker
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
-      - id: check-yaml
-      - id: check-builtin-literals
-      - id: requirements-txt-fixer
-  - repo: https://github.com/psf/black
-    rev: 22.12.0
-    hooks:
-      - id: black
-        args: [--line-length=100, --skip-string-normalization]
-  - repo: https://github.com/asottile/reorder_python_imports
-    rev: v3.9.0
-    hooks:
-      - id: reorder-python-imports
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.10.0
-    hooks:
-      - id: python-use-type-annotations
-      - id: python-no-eval
-      - id: text-unicode-replacement-char
-        exclude: '.js$'
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        additional_dependencies:
-          - flake8-bugbear
-          - flake8-implicit-str-concat
-        args: [--max-line-length=100]
-  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.3.1
-    hooks:
-      - id: python-safety-dependencies-check
-        files: requirements.txt
-default_language_version:
-  python: python3.10
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.15.0
+  hooks:
+  - id: pyupgrade
+    args: [--py39-plus]
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: check-ast
+  - id: fix-byte-order-marker
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+  - id: check-yaml
+  - id: check-builtin-literals
+  - id: check-toml
+- repo: https://github.com/psf/black
+  rev: 23.10.0
+  hooks:
+  - id: black
+- repo: https://github.com/asottile/reorder_python_imports
+  rev: v3.12.0
+  hooks:
+  - id: reorder-python-imports
+- repo: https://github.com/pre-commit/pygrep-hooks
+  rev: v1.10.0
+  hooks:
+  - id: python-use-type-annotations
+  - id: python-no-eval
+  - id: text-unicode-replacement-char
+    exclude: .js$
+- repo: https://github.com/pycqa/flake8
+  rev: 6.1.0
+  hooks:
+  - id: flake8
+    additional_dependencies:
+    - flake8-bugbear
+    - flake8-implicit-str-concat
+    args: [--max-line-length=100]
+- repo: https://github.com/mrtazz/checkmake.git
+  rev: 0.2.2
+  hooks:
+  - id: checkmake
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.11.0
+  hooks:
+  - id: pretty-format-yaml
+    args: [--autofix, --indent, '2']
+  - id: pretty-format-toml
+    args: [--autofix, --indent, '2']

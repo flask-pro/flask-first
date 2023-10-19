@@ -1,5 +1,6 @@
 from copy import deepcopy
 from pathlib import Path
+from typing import Optional
 
 from openapi_spec_validator import validate_spec
 from openapi_spec_validator.readers import read_from_filename
@@ -22,7 +23,7 @@ class Specification:
         except OpenAPIValidationError as e:
             raise FirstOpenAPIValidation(repr(e))
 
-    def _resolving_all_refs(self, schema: dict) -> dict | list:
+    def _resolving_all_refs(self, schema: dict) -> dict or list:
         if isinstance(schema, dict):
             if '$ref' in schema:
                 keys = schema['$ref'].replace('#/', '').split('/')
@@ -46,7 +47,7 @@ class Specification:
 
         return schema
 
-    def _make_param_schema(self, parameters: list, type_params: str) -> dict | None:
+    def _make_param_schema(self, parameters: list, type_params: str) -> Optional[dict]:
         schema = {'type': 'object', 'additionalProperties': False, 'properties': {}}
         for param in parameters:
             if type_params != param['in']:
@@ -107,7 +108,7 @@ class Specification:
         resolved_schema = self._convert_parameters_to_schema(spec_without_refs)
         return resolved_schema
 
-    def _convert_schemas(self, resolved_schema: dict) -> dict | list:
+    def _convert_schemas(self, resolved_schema: dict) -> dict or list:
         converted_schema = deepcopy(resolved_schema)
         if isinstance(converted_schema, dict):
             for key, value in converted_schema.items():

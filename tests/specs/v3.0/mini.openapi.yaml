@@ -7,7 +7,7 @@ paths:
     get:
       operationId: mini_endpoint
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:

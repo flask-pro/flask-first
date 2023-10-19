@@ -1,20 +1,24 @@
+from pathlib import Path
+
 from flask import Flask
 from flask import request
 from flask import send_file
 from flask_first import First
 
+from .conftest import BASEDIR
+
 
 def test_files(fx_app, fx_client):
     app = Flask('check_v30_specs')
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    first = First('specs/v3.0/files.openapi.yaml', app=app, swagger_ui_path='/docs')
+    first = First(Path(BASEDIR, 'specs/v3.0/files.openapi.yaml'), app=app, swagger_ui_path='/docs')
 
     def upload_file() -> tuple:
         assert request.files.get('file')
         return '', 204
 
     def download_file():
-        response = send_file('content/img.png', download_name='img.png')
+        response = send_file(Path(BASEDIR, 'content/img.png'), download_name='img.png')
         response.direct_passthrough = False
         return response
 
@@ -24,7 +28,7 @@ def test_files(fx_app, fx_client):
     uploaded_file = app.test_client().post(
         '/files',
         headers={'Content-Type': 'multipart/form-data'},
-        data={'file': open('content/img.png', mode='rb')},
+        data={'file': open(Path(BASEDIR, 'content/img.png'), mode='rb')},
     )
 
     assert uploaded_file.status_code == 204

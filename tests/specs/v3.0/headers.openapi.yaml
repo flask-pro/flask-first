@@ -5,16 +5,16 @@ info:
 paths:
   /endpoint_with_header:
     parameters:
-      - name: From-Header
-        in: header
-        description: parameter from header
-        required: true
-        schema:
-          type: string
+    - name: From-Header
+      in: header
+      description: parameter from header
+      required: true
+      schema:
+        type: string
     get:
       operationId: endpoint_with_header
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:

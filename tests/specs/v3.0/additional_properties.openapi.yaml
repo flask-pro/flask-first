@@ -7,7 +7,7 @@ paths:
     get:
       operationId: additional_properties_object
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
@@ -22,7 +22,7 @@ paths:
     get:
       operationId: additional_properties_bool
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:

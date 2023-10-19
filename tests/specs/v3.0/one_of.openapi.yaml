@@ -7,27 +7,27 @@ paths:
     get:
       operationId: one_of_endpoint
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ObjectSchema"
+                $ref: '#/components/schemas/ObjectSchema'
 components:
   schemas:
     ObjectSchema:
       oneOf:
-        - $ref: '#/components/schemas/NewObjectSchema'
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
+      - $ref: '#/components/schemas/NewObjectSchema'
+      - type: object
+        required:
+        - id
+        properties:
+          id:
+            type: integer
     NewObjectSchema:
       type: object
       required:
-        - name
+      - name
       properties:
         name:
           type: string

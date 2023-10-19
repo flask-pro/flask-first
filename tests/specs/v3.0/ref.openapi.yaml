@@ -5,16 +5,16 @@ info:
 paths:
   /mini_endpoint/{uuid}:
     parameters:
-      - $ref: "#/components/parameters/uuid"
+    - $ref: '#/components/parameters/uuid'
     post:
       parameters:
-        - $ref: "#/components/parameters/page"
+      - $ref: '#/components/parameters/page'
       operationId: mini_endpoint
       requestBody:
-        $ref: "#/components/requestBodies/ItemRequest"
+        $ref: '#/components/requestBodies/ItemRequest'
       responses:
-        "200":
-          $ref: "#/components/responses/ItemResponse"
+        '200':
+          $ref: '#/components/responses/ItemResponse'
 components:
   schemas:
     Item:
@@ -29,7 +29,7 @@ components:
       required: true
       schema:
         type: string
-        format: "uuid"
+        format: uuid
     page:
       name: page
       in: query
@@ -39,7 +39,7 @@ components:
     ItemRequest:
       description: Request item.
       content:
-        'application/json':
+        application/json:
           schema:
             $ref: '#/components/schemas/Item'
   responses:

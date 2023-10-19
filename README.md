@@ -28,6 +28,8 @@ Will be added in future releases.
 
 ## Installing
 
+Recommended using the latest version of Python. Flask-First supports Python 3.9 and newer.
+
 Install and update using `pip`:
 
 ```shell

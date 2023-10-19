@@ -6,14 +6,14 @@ paths:
   /links_endpoint/{id}:
     get:
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
       operationId: links_endpoint
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:

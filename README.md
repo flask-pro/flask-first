@@ -139,6 +139,20 @@ paths:
           content: { }
 ```
 
+## Data types
+
+Supported formats for string type field:
+
+* uuid
+* date-time
+* date
+* time
+* email
+* ipv4
+* ipv6
+* uri
+* binary
+
 ## Additional documentation
 
 * [OpenAPI Documentation](https://swagger.io/specification/).

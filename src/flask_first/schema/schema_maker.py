@@ -44,7 +44,7 @@ FIELDS_VIA_FORMATS = {
     'email': fields.Email,
     'ipv4': fields.IPv4,
     'ipv6': fields.IPv6,
-    'url': fields.Url,
+    'uri': fields.Url,
     'binary': BytesField,
 }
 

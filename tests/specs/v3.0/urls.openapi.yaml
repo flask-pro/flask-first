@@ -14,7 +14,7 @@ paths:
               properties:
                 url:
                   type: string
-                  format: url
+                  format: uri
       responses:
         '200':
           description: OK
@@ -25,4 +25,4 @@ paths:
                 properties:
                   url:
                     type: string
-                    format: url
+                    format: uri

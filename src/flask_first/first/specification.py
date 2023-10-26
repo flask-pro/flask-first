@@ -2,7 +2,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Optional
 
-from openapi_spec_validator import validate_spec
+from openapi_spec_validator import validate
 from openapi_spec_validator.readers import read_from_filename
 from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
 
@@ -19,7 +19,7 @@ class Specification:
 
     def _validating_openapi_file(self):
         try:
-            validate_spec(self.raw_spec)
+            validate(self.raw_spec)
         except OpenAPIValidationError as e:
             raise FirstOpenAPIValidation(repr(e))
 

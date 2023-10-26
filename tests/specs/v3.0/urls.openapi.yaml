@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /url_format:
+    post:
+      operationId: post_url_format
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri

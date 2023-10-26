@@ -22,7 +22,7 @@ license = {file = "LICENSE"}
 name = "Flask-First"
 readme = "README.md"
 requires-python = ">=3.9"
-version = "0.14.3"
+version = "0.14.4"
 
 [project.optional-dependencies]
 dev = [

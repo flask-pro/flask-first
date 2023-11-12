@@ -1,3 +1,7 @@
+## Version 0.14.5
+
+* Bump version SwaggerUI.
+
 ## Version 0.14.4
 
 * Fix url data format.

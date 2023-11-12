@@ -4,14 +4,10 @@ from pathlib import Path
 from typing import Any
 
 import marshmallow
-from flask import Blueprint
 from flask import Flask
-from flask import render_template
 from flask import Request
 from flask import request
 from flask import Response
-from flask import send_file
-from flask import url_for
 from marshmallow.exceptions import ValidationError
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import MultiDict
@@ -21,6 +17,7 @@ from .first import Specification
 from .first.exceptions import FirstException
 from .first.exceptions import FirstResponseJSONValidation
 from .first.exceptions import FirstValidation
+from .swagger_ui import add_swagger_ui_blueprint
 
 
 class First:
@@ -129,29 +126,6 @@ class First:
                 args[arg] = [args[arg]]
 
         return args
-
-    def _registration_swagger_ui_blueprint(self, swagger_ui_path: str or Path) -> None:
-        swagger_ui = Blueprint(
-            'swagger_ui',
-            __name__,
-            static_folder='static',
-            template_folder='templates',
-            url_prefix=swagger_ui_path,
-        )
-
-        @swagger_ui.add_app_template_global
-        def swagger_ui_static(filename):
-            return url_for('swagger_ui.static', filename=filename)
-
-        @swagger_ui.route('/')
-        def swagger_ui_page():
-            return render_template('swagger_ui/index.html', path_to_spec=self.path_to_spec)
-
-        @swagger_ui.route('/openapi.yaml')
-        def get_file_spec():
-            return send_file(self.path_to_spec)
-
-        self.app.register_blueprint(swagger_ui)
 
     def _register_request_validation(self) -> None:
         @self.app.before_request
@@ -269,7 +243,7 @@ class First:
         self.app.extensions['first'] = self
 
         if self.swagger_ui_path:
-            self._registration_swagger_ui_blueprint(self.swagger_ui_path)
+            add_swagger_ui_blueprint(self.app, self.path_to_spec, self.swagger_ui_path)
 
         self._register_request_validation()
 

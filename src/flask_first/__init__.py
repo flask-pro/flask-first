@@ -203,12 +203,15 @@ class First:
                     f'Method <{e.args[0]}> not defined in <{route_as_in_spec}>'
                 )
 
-            try:
-                http_code_schema: dict = method_schema['responses'][str(response.status_code)]
-            except KeyError as e:
-                raise FirstResponseJSONValidation(
-                    f'HTTP code <{e.args[0]}> not defined in route <{route_as_in_spec}>'
-                )
+            http_code_schema: dict = method_schema['responses'].get(str(response.status_code))
+            if http_code_schema is None:
+                try:
+                    http_code_schema: dict = method_schema['responses']['default']
+                except KeyError as e:
+                    raise FirstResponseJSONValidation(
+                        f'HTTP code <{str(response.status_code)}> or <{e.args[0]}> '
+                        f'responses not defined in route <{route_as_in_spec}>'
+                    )
 
             content: dict = http_code_schema['content']
 

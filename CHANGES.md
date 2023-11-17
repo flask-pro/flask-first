@@ -1,3 +1,7 @@
+## Version 0.14.6
+
+* The `default` response is now processed correctly.
+
 ## Version 0.14.5
 
 * Bump version SwaggerUI.

@@ -56,7 +56,9 @@ class First:
                     method: str = method_name
 
         if not route:
-            raise FirstException(f'Route function <{func.__name__}> not found in OpenAPI specification!')
+            raise FirstException(
+                f'Route function <{func.__name__}> not found in OpenAPI specification!'
+            )
 
         params_schema = self.spec.resolved_spec['paths'][route][method].get('parameters')
 

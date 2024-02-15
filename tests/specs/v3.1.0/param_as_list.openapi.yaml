@@ -1,22 +1,18 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Mini API for testing Flask-First
   version: 1.0.0
 paths:
-  /parameters_endpoint/{required_path}:
+  /parameters_endpoint:
     parameters:
-    - name: required_path
-      in: path
-      required: true
-      schema:
-        type: string
-        enum:
-        - params_from_enum
-    - name: required_arg
+    - name: param_as_list
       in: query
-      required: true
+      description: list uuid from query
       schema:
-        type: string
+        type: array
+        items:
+          type: string
+          format: uuid
     get:
       operationId: mini_endpoint
       responses:
@@ -27,29 +23,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  required_arg:
-                    type: string
-                  required_path:
-                    type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ERROR'
-  /without_args_endpoint:
-    get:
-      operationId: without_args_endpoint
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                  param_as_list:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
         '400':
           description: Bad Request
           content:

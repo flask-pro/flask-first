@@ -15,7 +15,7 @@ def test_specification__non_exist_args(fx_create_app):
 
         return {'non_exist_arg': None}
 
-    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.0/args.openapi.yaml'), (mini_endpoint,))
+    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.1.0/args.openapi.yaml'), (mini_endpoint,))
 
     with pytest.raises(FirstRequestArgsValidation):
         test_client.get(
@@ -31,7 +31,7 @@ def test_specification__required_args(fx_create_app):
         return {'required_path': required_path, 'required_arg': required_arg}
 
     test_client = fx_create_app(
-        Path(BASEDIR, 'specs/v3.0/args.required.openapi.yaml'), (mini_endpoint,)
+        Path(BASEDIR, 'specs/v3.1.0/args.required.openapi.yaml'), (mini_endpoint,)
     )
 
     with pytest.raises(FirstRequestPathArgsValidation):
@@ -63,7 +63,7 @@ def test_specification__endpoint_without_args(fx_create_app):
         return {'message': 'No args.'}
 
     test_client = fx_create_app(
-        Path(BASEDIR, 'specs/v3.0/args.required.openapi.yaml'), (without_args_endpoint,)
+        Path(BASEDIR, 'specs/v3.1.0/args.required.openapi.yaml'), (without_args_endpoint,)
     )
 
     with pytest.raises(FirstRequestArgsValidation):

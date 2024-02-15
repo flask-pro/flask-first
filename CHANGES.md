@@ -1,3 +1,7 @@
+## Version 0.15.0
+
+* Add specification experimental validator for OpenAPI 3.1.
+
 ## Version 0.14.6
 
 * The `default` response is now processed correctly.

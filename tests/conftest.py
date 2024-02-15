@@ -12,7 +12,7 @@ BASEDIR = os.path.abspath(os.path.dirname(__file__))
 @pytest.fixture()
 def fx_config():
     class Config:
-        PATH_TO_SPEC = Path(BASEDIR, 'specs/v3.0/openapi.yaml')
+        PATH_TO_SPEC = Path(BASEDIR, 'specs/v3.1.0/openapi.yaml')
 
     return Config
 

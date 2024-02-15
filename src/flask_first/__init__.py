@@ -34,11 +34,10 @@ class First:
         self.app = app
         self.path_to_spec = path_to_spec
         self.swagger_ui_path = swagger_ui_path
+        self.spec = None
 
         if self.app is not None:
             self.init_app(app)
-
-        self.spec = Specification(path_to_spec)
 
         self._mapped_routes_from_spec = []
 
@@ -51,12 +50,15 @@ class First:
 
         for path, path_item in self.spec.resolved_spec['paths'].items():
             for method_name, operation in path_item.items():
-                if operation.get('operationId') == func.__name__:
+                route_from_spec = operation.get('operationId')
+                if route_from_spec == func.__name__:
                     route: str = path
                     method: str = method_name
 
         if not route:
-            raise FirstException(f'Route function <{route}> not found in OpenAPI specification!')
+            raise FirstException(
+                f'Route function <{func.__name__}> not found in OpenAPI specification!'
+            )
 
         params_schema = self.spec.resolved_spec['paths'][route][method].get('parameters')
 
@@ -243,7 +245,13 @@ class First:
     def init_app(self, app: Flask) -> None:
         self.app = app
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
+        self.app.config.setdefault('FIRST_EXPERIMENTAL_VALIDATOR', False)
         self.app.extensions['first'] = self
+
+        self.spec = Specification(
+            self.path_to_spec,
+            experimental_validator=self.app.config['FIRST_EXPERIMENTAL_VALIDATOR'],
+        )
 
         if self.swagger_ui_path:
             add_swagger_ui_blueprint(self.app, self.path_to_spec, self.swagger_ui_path)

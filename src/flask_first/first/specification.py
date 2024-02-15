@@ -8,19 +8,29 @@ from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
 
 from ..schema.schema_maker import make_marshmallow_schema
 from .exceptions import FirstOpenAPIValidation
+from .validator import OpenAPI310ValidationError
+from .validator import Validator
 
 
 class Specification:
-    def __init__(self, path: Path):
-        self.raw_spec, _ = read_from_filename(path)
-        self._validating_openapi_file()
+    def __init__(self, path: [Path | str], experimental_validator: bool = False):
+        self.path = path
+        self.experimental_validator = experimental_validator
+        self.raw_spec, _ = read_from_filename(self.path)
+        self._validating_openapi_file(self.path, self.experimental_validator)
         self.resolved_spec = self._resolving_refs()
         self.serialized_spec = self._convert_schemas(self.resolved_spec)
 
-    def _validating_openapi_file(self):
+    def _validating_openapi_file(self, path: Path, experimental_validator: bool):
+        if experimental_validator:
+            try:
+                Validator(path).validate()
+            except OpenAPI310ValidationError as e:
+                raise FirstOpenAPIValidation(repr(e))
+
         try:
             validate(self.raw_spec)
-        except OpenAPIValidationError as e:
+        except (OpenAPIValidationError, TypeError) as e:
             raise FirstOpenAPIValidation(repr(e))
 
     def _resolving_all_refs(self, schema: dict) -> dict or list:

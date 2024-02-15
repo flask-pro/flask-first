@@ -30,7 +30,7 @@ def test_specification__case_sensitive_url(fx_create_app, url):
     def post_url_format() -> dict:
         return {'url': request.json['url']}
 
-    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.0/urls.openapi.yaml'), [post_url_format])
+    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.1.0/urls.openapi.yaml'), [post_url_format])
 
     r = test_client.post('/url_format', json={'url': url})
     assert r.status_code == 200

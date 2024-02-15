@@ -11,7 +11,7 @@ def test_specification__case_sensitive_url(fx_create_app):
         return {'message': request.url_rule.rule}
 
     test_client = fx_create_app(
-        Path(BASEDIR, 'specs/v3.0/endpoint.case_sensitive.openapi.yaml'),
+        Path(BASEDIR, 'specs/v3.1.0/endpoint.case_sensitive.openapi.yaml'),
         (case_sensitive_url_endpoint,),
     )
 
@@ -29,7 +29,7 @@ def test_specification__non_case_sensitive_url(fx_create_app, url):
         return {'message': request.url_rule.rule}
 
     test_client = fx_create_app(
-        Path(BASEDIR, 'specs/v3.0/endpoint.case_sensitive.openapi.yaml'),
+        Path(BASEDIR, 'specs/v3.1.0/endpoint.case_sensitive.openapi.yaml'),
         (case_sensitive_url_endpoint,),
     )
 

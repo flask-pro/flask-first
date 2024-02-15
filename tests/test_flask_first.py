@@ -132,7 +132,7 @@ def test_specification__all_of():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/all_of.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/all_of.openapi.yaml')
     first = First(full_spec, app)
 
     def all_of_endpoint() -> dict:
@@ -152,7 +152,7 @@ def test_specification__one_of():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/one_of.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/one_of.openapi.yaml')
     first = First(full_spec, app)
 
     def one_of_endpoint() -> dict:
@@ -169,7 +169,7 @@ def test_specification__any_of():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/any_of.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/any_of.openapi.yaml')
     first = First(full_spec, app)
 
     def any_of_endpoint() -> dict:
@@ -186,7 +186,7 @@ def test_specification__not_registered_endpoint():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/not_registered_endpoint.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/not_registered_endpoint.openapi.yaml')
     First(full_spec, app)
 
     @app.route('/index')
@@ -204,7 +204,7 @@ def test_specification__headers():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/headers.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/headers.openapi.yaml')
     first = First(full_spec, app)
 
     def endpoint_with_header() -> dict:
@@ -222,7 +222,7 @@ def test_specification__factory_app():
     def mini_endpoint() -> dict:
         return {'message': 'test_factory_app'}
 
-    first = First(Path(BASEDIR, 'specs/v3.0/mini.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.1.0/mini.openapi.yaml'))
 
     def create_app():
         app = Flask('factory_app')
@@ -245,7 +245,7 @@ def test_specification__registration_function():
     def mini_endpoint() -> dict:
         return {'message': 'test_factory_app'}
 
-    first = First(Path(BASEDIR, 'specs/v3.0/mini.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.1.0/mini.openapi.yaml'))
 
     def create_app():
         app = Flask('factory_app')
@@ -268,7 +268,7 @@ def test_specification__response_obj():
     def mini_endpoint() -> dict:
         return {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}
 
-    first = First(Path(BASEDIR, 'specs/v3.0/object.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.1.0/object.openapi.yaml'))
 
     def create_app():
         app = Flask('object_app')
@@ -291,7 +291,7 @@ def test_specification__resolving_references(fx_create_app):
     def mini_endpoint(uuid: str) -> dict:
         return {'message': str(uuid)}
 
-    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.0/ref.openapi.yaml'), (mini_endpoint,))
+    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.1.0/ref.openapi.yaml'), (mini_endpoint,))
 
     test_uuid = str(uuid.uuid4())
     r = test_client.post(f'/mini_endpoint/{test_uuid}', json={'message': 'test_message'})
@@ -315,7 +315,7 @@ def test_specification__params__format():
             'datetime_from_query': str(datetime_from_query).replace(' ', 'T'),
         }
 
-    first = First(Path(BASEDIR, 'specs/v3.0/parameters.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.1.0/parameters.openapi.yaml'))
 
     def create_app():
         app = Flask('params__format')
@@ -353,7 +353,7 @@ def test_specification__param_as_list():
 
         return {'param_as_list': param_as_list}
 
-    first = First(Path(BASEDIR, 'specs/v3.0/param_as_list.openapi.yaml'))
+    first = First(Path(BASEDIR, 'specs/v3.1.0/param_as_list.openapi.yaml'))
 
     def create_app():
         app = Flask('param_as_list')
@@ -381,7 +381,7 @@ def test_specification__not_defined_name_key():
     app.debug = 1
     app.testing = 1
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/not_defined_name_key.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/not_defined_name_key.openapi.yaml')
     first = First(full_spec, app)
 
     def one_of_endpoint() -> dict:

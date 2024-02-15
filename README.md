@@ -41,7 +41,7 @@ Simple example
 OpenAPI 3 specification file `openapi.yaml`:
 
 ```yaml
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Simple API for Flask-First
   version: 1.0.0

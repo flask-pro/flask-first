@@ -1,11 +1,16 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Mini API for testing Flask-First
   version: 1.0.0
 paths:
-  /nullable_endpoint:
-    post:
-      operationId: nullable_endpoint
+  /parameters_endpoint:
+    parameters:
+    - name: exist_arg
+      in: query
+      schema:
+        type: string
+    get:
+      operationId: mini_endpoint
       responses:
         '200':
           description: OK
@@ -14,24 +19,14 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  non_exist_arg:
                     type: string
-                    nullable: true
         '400':
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ERROR'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  nullable: true
 components:
   schemas:
     ERROR:

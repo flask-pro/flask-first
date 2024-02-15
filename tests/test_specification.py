@@ -24,7 +24,7 @@ def test_specification__bad_response(fx_app, fx_client):
 def test_specification__full_field_openapi():
     app = Flask('testing_app')
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/full.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/full.openapi.yaml')
     First(full_spec, app)
 
 
@@ -39,9 +39,9 @@ def test_specification__bad_openapi():
         assert True
 
 
-@pytest.mark.parametrize('spec', Path(BASEDIR, 'specs/v3.0').iterdir())
+@pytest.mark.parametrize('spec', Path(BASEDIR, 'specs/v3.1.0').iterdir())
 def test_specification__check_v30_specs(spec):
-    specs_dir = 'specs/v3.0'
+    specs_dir = 'specs/v3.1.0'
     app = Flask('check_v30_specs')
     app.config['FIRST_RESPONSE_VALIDATION'] = True
     full_spec = Path(BASEDIR, specs_dir, spec)
@@ -56,7 +56,7 @@ def test_specification__nullable_parameter():
     app = Flask('testing_app')
     app.debug = True
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    full_spec = Path(BASEDIR, 'specs/v3.0/nullable.openapi.yaml')
+    full_spec = Path(BASEDIR, 'specs/v3.1.0/nullable.openapi.yaml')
     first = First(full_spec, app)
 
     def nullable_endpoint() -> dict:

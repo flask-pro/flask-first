@@ -11,7 +11,9 @@ from .conftest import BASEDIR
 def test_files(fx_app, fx_client):
     app = Flask('check_v30_specs')
     app.config['FIRST_RESPONSE_VALIDATION'] = True
-    first = First(Path(BASEDIR, 'specs/v3.0/files.openapi.yaml'), app=app, swagger_ui_path='/docs')
+    first = First(
+        Path(BASEDIR, 'specs/v3.1.0/files.openapi.yaml'), app=app, swagger_ui_path='/docs'
+    )
 
     def upload_file() -> tuple:
         assert request.files.get('file')

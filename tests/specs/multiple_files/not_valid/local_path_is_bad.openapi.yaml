@@ -1,0 +1,7 @@
+openapi: 3.1.0
+info:
+  title: API for testing Flask-First
+  version: 1.0.0
+paths:
+  /get-endpoint:
+    $ref: '#/components@responses\GetResponse'

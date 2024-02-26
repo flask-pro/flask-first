@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.0
+  rev: v3.15.1
   hooks:
   - id: pyupgrade
     args: [--py39-plus]
@@ -15,7 +15,7 @@ repos:
   - id: check-builtin-literals
   - id: check-toml
 - repo: https://github.com/psf/black
-  rev: 23.10.0
+  rev: 24.2.0
   hooks:
   - id: black
 - repo: https://github.com/asottile/reorder_python_imports
@@ -30,7 +30,7 @@ repos:
   - id: text-unicode-replacement-char
     exclude: .js$
 - repo: https://github.com/pycqa/flake8
-  rev: 6.1.0
+  rev: 7.0.0
   hooks:
   - id: flake8
     additional_dependencies:
@@ -42,9 +42,19 @@ repos:
   hooks:
   - id: checkmake
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.11.0
+  rev: v2.12.0
   hooks:
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']
   - id: pretty-format-toml
     args: [--autofix, --indent, '2']
+- repo: https://codeberg.org/frnmst/md-toc
+  rev: 8.2.3
+  hooks:
+  - id: md-toc
+    args: [-p, github]
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.15.0
+  hooks:
+  - id: pyupgrade
+    args: [--py39-plus]

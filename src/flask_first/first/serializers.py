@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 from marshmallow import EXCLUDE
 from marshmallow.exceptions import ValidationError
@@ -47,7 +46,7 @@ class RequestSerializer:
         self.serialized_params = params
         self.serialized_json = json
 
-    def _validating_endpoint(self) -> Optional[FirstEndpointValidation]:
+    def _validating_endpoint(self) -> FirstEndpointValidation or None:
         endpoint = re.fullmatch(self.RE_ENDPOINT, self.endpoint)
         if endpoint is None:
             raise FirstEndpointValidation(
@@ -58,13 +57,13 @@ class RequestSerializer:
                 f'Endpoint <{self.endpoint}> not in OpenAPI specification.'
             )
 
-    def _validating_method(self) -> Optional[Exception]:
+    def _validating_method(self) -> FirstEndpointValidation or None:
         if self.method not in self._paths_schema[self.endpoint]:
             raise FirstEndpointValidation(
                 f'Endpoint <{self.endpoint}> not in OpenAPI specification.'
             )
 
-    def _validating_headers(self) -> Optional[Exception]:
+    def _validating_headers(self) -> FirstRequestHeadersValidation or None:
         params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
         if params_schemas:
             headers_schema = params_schemas.get('headers')
@@ -77,7 +76,7 @@ class RequestSerializer:
             if self.path_params:
                 raise FirstRequestHeadersValidation('Headers of request not in specification.')
 
-    def _validating_cookies(self) -> Optional[Exception]:
+    def _validating_cookies(self) -> FirstRequestCookiesValidation or None:
         params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
         if params_schemas:
             cookies_schema = params_schemas.get('cookies')
@@ -90,7 +89,7 @@ class RequestSerializer:
             if self.path_params:
                 raise FirstRequestCookiesValidation('Cookies of request not in specification.')
 
-    def _validating_path_params(self) -> Optional[Exception]:
+    def _validating_path_params(self) -> FirstRequestPathArgsValidation or None:
         params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
         if params_schemas:
             path_params_schema = params_schemas.get('view_args')
@@ -105,7 +104,7 @@ class RequestSerializer:
                     'Path parameters of request not in specification.'
                 )
 
-    def _validating_params(self) -> Optional[Exception]:
+    def _validating_params(self) -> FirstRequestArgsValidation or None:
         params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
         if params_schemas:
             args_schema = params_schemas.get('args')
@@ -118,7 +117,7 @@ class RequestSerializer:
             if self.params:
                 raise FirstRequestArgsValidation('Parameters of request not in specification.')
 
-    def _validating_json(self) -> Optional[Exception]:
+    def _validating_json(self) -> FirstRequestJSONValidation or None:
         request_body = self._paths_schema[self.endpoint][self.method].get('requestBody')
         if request_body:
             content = self._paths_schema[self.endpoint][self.method]['requestBody']['content']

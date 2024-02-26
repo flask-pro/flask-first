@@ -5,6 +5,10 @@ class FirstException(Exception):
     """Common exception."""
 
 
+class FirstOpenAPIResolverError(FirstException):
+    """Exception for specification resolver error."""
+
+
 class FirstOpenAPIValidation(FirstException):
     """Exception for specification validation error."""
 

@@ -1,43 +1,76 @@
 # Flask-First
 
-Flask extension for using "specification first" principle.
+Flask extension for using "specification first" and "API-first" principles.
 
-Features:
+<!--TOC-->
+
+- [Flask-First](#flask-first)
+  - [Features](#features)
+    - [Limitations](#limitations)
+  - [Installation](#installation)
+  - [Settings](#settings)
+  - [Data types](#data-types)
+  - [Examples](#examples)
+    - [Simple example](#simple-example)
+    - [Multiple file specs](#multiple-file-specs)
+    - [CORS support](#cors-support)
+  - [Additional documentation](#additional-documentation)
+
+<!--TOC-->
+
+## Features
 
 * `Application Factory` supported.
-* Validating and serializing arguments from `request.headers` to `request.first_headers`.
-* Validating and serializing arguments from `request.view_args` to `request.first_view_args`.
-* Validating and serializing arguments from `request.args` to `request.first_args`.
-* Validating and serializing arguments from `request.cookies` to `request.first_cookies`.
-* Validating and serializing arguments from `request.json` to `request.first_json`.
-* Validating headers from request.
-* Validating cookies from request.
-* Validating path parameters from request.
-* Validating parameters from request.
-* Validating JSON from request.
-* Validating JSON from response.
+* Validating and serializing headers of request from `request.headers` to `request.first_headers`.
+* Validating and serializing path parameters of request from `request.view_args`
+  to `request.first_view_args`.
+* Validating and serializing arguments of request from `request.args` to `request.first_args`.
+* Validating and serializing cookies of request from `request.cookies` to `request.first_cookies`.
+* Validating and serializing JSON of request from `request.json` to `request.first_json`.
+* Validating JSON from response for debugging.
 * Provides a Swagger UI.
+* Support OpenAPI version 3.1.0.
+* Support specification from multiple file.
 
-Limitations
-----
+### Limitations
 
 Will be added in future releases.
 
-* Full specification in one file.
 * Authorization not supported.
 
-## Installing
+## Installation
 
 Recommended using the latest version of Python. Flask-First supports Python 3.9 and newer.
 
 Install and update using `pip`:
 
 ```shell
-$ pip install flask_first
+$ pip install -U flask_first
 ```
 
-Simple example
---------------
+## Settings
+
+`FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
+developing. Must be disabled in a production environment.
+
+## Data types
+
+Supported formats for string type field:
+
+* uuid
+* date-time
+* date
+* time
+* email
+* ipv4
+* ipv6
+* uri
+* binary
+
+## Examples
+
+### Simple example
+
 OpenAPI 3 specification file `openapi.yaml`:
 
 ```yaml
@@ -48,16 +81,16 @@ info:
 paths:
   /{name}:
     parameters:
-      - name: name
-        in: path
-        required: true
-        schema:
-          type: string
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
     get:
       operationId: index
       summary: Returns a list of items
       responses:
-        '200':
+        200:
           description: OK
           content:
             application/json:
@@ -85,14 +118,13 @@ first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
 
 def index(name):
-  return {'message': name}
+    return {'message': name}
 
 
 first.add_view_func(index)
 
 if __name__ == '__main__':
-  app.run()
-
+    app.run()
 ```
 
 Run application:
@@ -104,12 +136,58 @@ $ python main.py
 Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in
 browser `http://127.0.0.1:5000/docs`.
 
-## Settings
+### Multiple file specs
 
-`FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
-developing. May be disabled in a production environment.
+Flask-First supported specification OpenAPI from multiple files. You need create root file for
+specification with name `openapi.yaml`.
 
-## CORS support
+Root file `openapi.yaml`:
+
+```yaml
+openapi: 3.1.0
+info:
+  title: Simple API for Flask-First
+  version: 1.0.0
+paths:
+  /{name}:
+    $ref: 'name.openapi.yaml#/name'
+components:
+  schemas:
+    MessageField:
+      type: string
+      description: Field for message.
+```
+
+Child file `name.openapi.yaml`:
+
+```yaml
+name:
+  parameters:
+    - name: name
+      in: path
+      required: true
+      schema:
+      type: string
+  get:
+    operationId: index
+    summary: Returns a list of items
+    responses:
+      '200':
+        $ref: '#/components/responses/ResponseOK'
+components:
+  responses:
+    ResponseOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                $ref: 'openapi.yaml#/components/schemas/MessageField'
+```
+
+### CORS support
 
 Your need enable CORS in Flask and adding `OPTIONS` method in your specification. Example:
 
@@ -125,33 +203,19 @@ paths:
     options:
       summary: CORS support
       responses:
-        200:
-          headers:
-            Access-Control-Allow-Origin:
-              schema:
-                type: string
-            Access-Control-Allow-Methods:
-              schema:
-                type: string
-            Access-Control-Allow-Headers:
-              schema:
-                type: string
-          content: { }
+      200:
+        headers:
+          Access-Control-Allow-Origin:
+            schema:
+              type: string
+          Access-Control-Allow-Methods:
+            schema:
+              type: string
+          Access-Control-Allow-Headers:
+            schema:
+              type: string
+        content: { }
 ```
-
-## Data types
-
-Supported formats for string type field:
-
-* uuid
-* date-time
-* date
-* time
-* email
-* ipv4
-* ipv6
-* uri
-* binary
 
 ## Additional documentation
 

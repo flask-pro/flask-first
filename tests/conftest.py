@@ -1,4 +1,5 @@
 import os
+from collections.abc import Iterable
 from pathlib import Path
 
 import pytest
@@ -42,7 +43,7 @@ def fx_client(fx_app) -> FlaskClient:
 
 @pytest.fixture()
 def fx_create_app():
-    def _create_app(path_to_spec: str, routes_functions: tuple):
+    def _create_app(path_to_spec: str, routes_functions: Iterable):
         app = Flask('testing_app')
         app.debug = 1
         app.config['FIRST_RESPONSE_VALIDATION'] = True

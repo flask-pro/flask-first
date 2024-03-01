@@ -12,7 +12,7 @@ Flask extension for using "specification first" and "API-first" principles.
   - [Data types](#data-types)
   - [Examples](#examples)
     - [Simple example](#simple-example)
-    - [Multiple file specs](#multiple-file-specs)
+    - [Specification from multiple file](#specification-from-multiple-file)
     - [CORS support](#cors-support)
   - [Additional documentation](#additional-documentation)
 
@@ -136,7 +136,7 @@ $ python main.py
 Check url in browser `http://127.0.0.1:5000/username`. Check SwaggerUI url in
 browser `http://127.0.0.1:5000/docs`.
 
-### Multiple file specs
+### Specification from multiple file
 
 Flask-First supported specification OpenAPI from multiple files. You need create root file for
 specification with name `openapi.yaml`.

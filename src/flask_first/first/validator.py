@@ -29,7 +29,7 @@ class InfoSchema(Schema):
 class SchemaObjectSchema(Schema):
     type = fields.String(required=True, validate=validate.OneOf(TYPES))
     properties = fields.Dict(
-        keys=fields.String(required=True), values=fields.Nested('SchemaObjectSchema')
+        keys=fields.String(required=True), values=fields.Nested(lambda: SchemaObjectSchema())
     )
 
 
@@ -73,7 +73,7 @@ class RootSchema(Schema):
 
 
 class Validator:
-    def __init__(self, path: Path | str):
+    def __init__(self, path: Path or str):
         self.path = path
         self.raw_spec = self._yaml_to_dict(self.path)
 

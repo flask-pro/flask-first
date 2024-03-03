@@ -1,3 +1,7 @@
+## Version 0.16.0
+
+* Add support for splitting OpenAPI specification into multiple files.
+
 ## Version 0.15.0
 
 * Add specification experimental validator for OpenAPI 3.1.

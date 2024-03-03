@@ -1,4 +1,3 @@
-"""Flask extension for using “specification first” principle."""
 import re
 from pathlib import Path
 from typing import Any
@@ -103,7 +102,8 @@ class First:
 
         return method, route, headers, view_args, args, cookies, json
 
-    def _resolved_params(self, payload: MultiDict) -> dict:
+    @staticmethod
+    def _resolved_params(payload: MultiDict) -> dict:
         # payload.to_dict(flat=False) serializing all arguments as list for correct receipt of
         # arguments of same name:
         # {'first_arg': ['1'], 'second_arg': ['10'], 'args_list': ['1', '2']}
@@ -117,7 +117,8 @@ class First:
 
         return serialized_payload
 
-    def _arg_to_list(self, args: dict, schema_fields: dict) -> dict:
+    @staticmethod
+    def _arg_to_list(args: dict, schema_fields: dict) -> dict:
         for arg in args:
             arg_value = schema_fields.get(arg, ...)
 

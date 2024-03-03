@@ -3,7 +3,7 @@
 
 venv:
 	# Create virtual environment.
-	python3.11 -m venv venv
+	python3.12 -m venv venv
 	./venv/bin/pip3 -q install --upgrade pip setuptools wheel
 	./venv/bin/pip3 -q install -e ".[dev]"
 	./venv/bin/pip3 -q install -e .

@@ -1,0 +1,16 @@
+name: Flask-First testing
+run-name: ${{ github.actor }} is testing Flask-First
+on: [push]
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    steps:
+    - run: make format
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - run: make test
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - run: make build

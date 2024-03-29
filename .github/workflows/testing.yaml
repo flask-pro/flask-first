@@ -6,9 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ../flask-first
+        working-directory: .
     steps:
     - run: |
+        pwd
         ls -la
         make format
   test:

@@ -8,7 +8,7 @@ venv:
 	./venv/bin/pip3 -q install -e ".[dev]"
 	./venv/bin/pip3 -q install -e .
 
-format:
+format: venv
 	# Run checking and formatting sources.
 	./venv/bin/pre-commit run -a
 

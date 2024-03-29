@@ -7,8 +7,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-        pwd
-        ls -la
         make format
   test:
     runs-on: ubuntu-latest

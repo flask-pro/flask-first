@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-        cd ../..
+        cd ${{ github.workspace }}
         ls -la
         make format
   test:

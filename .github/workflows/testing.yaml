@@ -4,9 +4,11 @@ on: [push]
 jobs:
   linters:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ..
     steps:
     - run: |
-        cd ${{ github.workspace }}
         ls -la
         make format
   test:

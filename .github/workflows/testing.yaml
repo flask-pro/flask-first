@@ -5,7 +5,9 @@ jobs:
   linters:
     runs-on: ubuntu-latest
     steps:
-    - run: make format
+    - run: |
+        ls -la
+        make format
   test:
     runs-on: ubuntu-latest
     steps:

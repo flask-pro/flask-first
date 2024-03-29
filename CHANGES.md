@@ -1,3 +1,7 @@
+## Version 0.16.1
+
+* Fix the display of the specification described in several files in Swagger UI.
+
 ## Version 0.16.0
 
 * Add support for splitting OpenAPI specification into multiple files.

@@ -23,8 +23,8 @@ class Resolver:
     Specification from several files are supported.
     """
 
-    def __init__(self, abs_path: Path):
-        self.abs_path = abs_path
+    def __init__(self, abs_path: Path or str):
+        self.abs_path = Path(abs_path)
         self.root_dir = self.abs_path.resolve().parent
 
     @staticmethod
@@ -53,7 +53,11 @@ class Resolver:
     def _resolving(self, schema: dict, relative_path_to_file_schema: str) -> dict or list[dict]:
         if isinstance(schema, dict):
             if '$ref' in schema:
-                relative_file_path_from_ref, local_path = schema['$ref'].split('#/')
+                try:
+                    relative_file_path_from_ref, local_path = schema['$ref'].split('#/')
+                except AttributeError:
+                    raise FirstOpenAPIResolverError(f'"$ref" <{schema["$ref"]}> must be string.')
+
                 local_path_parts = local_path.split('/')
 
                 if relative_file_path_from_ref:

@@ -255,7 +255,7 @@ class First:
         )
 
         if self.swagger_ui_path:
-            add_swagger_ui_blueprint(self.app, self.path_to_spec, self.swagger_ui_path)
+            add_swagger_ui_blueprint(self.app, self.spec, self.swagger_ui_path)
 
         self._register_request_validation()
 

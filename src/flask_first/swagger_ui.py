@@ -3,11 +3,12 @@ from pathlib import Path
 from flask import Blueprint
 from flask import Flask
 from flask import render_template
-from flask import send_file
 from flask import url_for
 
+from .first.specification import Specification
 
-def add_swagger_ui_blueprint(app: Flask, path_to_spec: str, swagger_ui_path: str or Path) -> None:
+
+def add_swagger_ui_blueprint(app: Flask, spec: Specification, swagger_ui_path: str or Path) -> None:
     swagger_ui = Blueprint(
         'swagger_ui',
         __name__,
@@ -22,10 +23,10 @@ def add_swagger_ui_blueprint(app: Flask, path_to_spec: str, swagger_ui_path: str
 
     @swagger_ui.route('/')
     def swagger_ui_page():
-        return render_template('swagger_ui/index.html', path_to_spec=path_to_spec)
+        return render_template('swagger_ui/index.html')
 
-    @swagger_ui.route('/openapi.yaml')
+    @swagger_ui.route('/openapi.json')
     def get_file_spec():
-        return send_file(path_to_spec)
+        return spec.raw_spec
 
     app.register_blueprint(swagger_ui)

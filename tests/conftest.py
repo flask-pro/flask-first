@@ -45,10 +45,10 @@ def fx_client(fx_app) -> FlaskClient:
 def fx_create_app():
     def _create_app(path_to_spec: str, routes_functions: Iterable):
         app = Flask('testing_app')
-        app.debug = 1
+        app.debug = True
         app.config['FIRST_RESPONSE_VALIDATION'] = True
 
-        first = First(path_to_spec, app)
+        first = First(path_to_spec, app, swagger_ui_path='/docs')
         for func in routes_functions:
             first.add_view_func(func)
 

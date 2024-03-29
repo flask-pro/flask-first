@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ../..
+        working-directory: ./flask-first
     steps:
     - run: |
         ls -la

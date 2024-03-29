@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
+        cd ../..
         ls -la
         make format
   test:

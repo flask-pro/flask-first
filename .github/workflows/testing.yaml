@@ -10,8 +10,6 @@ jobs:
       with:
         python-version: '3.12'
     - run: |
-        python -V
-        python3 -V
         make format
   test:
     runs-on: ubuntu-latest

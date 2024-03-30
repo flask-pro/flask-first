@@ -18,12 +18,12 @@ dependencies = [
   'openapi-spec-validator>=0.5.0',
   'marshmallow>=3.14.1'
 ]
-description = "Flask extension for using 'specification first' principle via OpenAPI specification"
+description = "Flask extension for using 'specification first' or 'API-first' principle via OpenAPI specification."
 license = {file = "LICENSE"}
 name = "Flask-First"
 readme = "README.md"
 requires-python = ">=3.9"
-version = "0.16.0"
+version = "0.16.1"
 
 [project.optional-dependencies]
 dev = [

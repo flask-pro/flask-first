@@ -49,7 +49,7 @@ def test_specification__check_v30_specs(spec):
 
     r = app.test_client().get('/docs', follow_redirects=True)
     assert r.status_code == 200
-    assert '/docs/openapi.yaml' in r.data.decode()
+    assert '/docs/openapi.json' in r.data.decode()
 
 
 def test_specification__nullable_parameter():

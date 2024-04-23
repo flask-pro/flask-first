@@ -86,29 +86,29 @@ OpenAPI 3 specification file `openapi.yaml`:
 ```yaml
 openapi: 3.1.0
 info:
-    title: Simple API for Flask-First
-    version: 1.0.0
+  title: Simple API for Flask-First
+  version: 1.0.0
 paths:
-    /{name}:
-        parameters:
-            -   name: name
-                in: path
-                required: true
-                schema:
+  /{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: index
+      summary: Returns a list of items
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
                     type: string
-        get:
-            operationId: index
-            summary: Returns a list of items
-            responses:
-                200:
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
 ```
 
 File with application initialization `main.py`:
@@ -156,45 +156,45 @@ Root file `openapi.yaml`:
 ```yaml
 openapi: 3.1.0
 info:
-    title: Simple API for Flask-First
-    version: 1.0.0
+  title: Simple API for Flask-First
+  version: 1.0.0
 paths:
-    /{name}:
-        $ref: 'name.openapi.yaml#/name'
+  /{name}:
+    $ref: 'name.openapi.yaml#/name'
 components:
-    schemas:
-        MessageField:
-            type: string
-            description: Field for message.
+  schemas:
+    MessageField:
+      type: string
+      description: Field for message.
 ```
 
 Child file `name.openapi.yaml`:
 
 ```yaml
 name:
-    parameters:
-        -   name: name
-            in: path
-            required: true
-            schema:
-            type: string
-    get:
-        operationId: index
-        summary: Returns a list of items
-        responses:
-            '200':
-                $ref: '#/components/responses/ResponseOK'
-components:
+  parameters:
+    - name: name
+      in: path
+      required: true
+      schema:
+      type: string
+  get:
+    operationId: index
+    summary: Returns a list of items
     responses:
-        ResponseOK:
-            description: OK
-            content:
-                application/json:
-                    schema:
-                        type: object
-                        properties:
-                            message:
-                                $ref: 'openapi.yaml#/components/schemas/MessageField'
+      '200':
+        $ref: '#/components/responses/ResponseOK'
+components:
+  responses:
+    ResponseOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                $ref: 'openapi.yaml#/components/schemas/MessageField'
 ```
 
 ### CORS support
@@ -204,26 +204,26 @@ Your need enable CORS in Flask and adding `OPTIONS` method in your specification
 ```yaml
 ...
 paths:
-    /index:
-        post: ...
-        get: ...
-        put: ...
-        patch: ...
-        delete: ...
-        options:
-            summary: CORS support
-            responses:
-            200:
-                headers:
-                    Access-Control-Allow-Origin:
-                        schema:
-                            type: string
-                    Access-Control-Allow-Methods:
-                        schema:
-                            type: string
-                    Access-Control-Allow-Headers:
-                        schema:
-                            type: string
+  /index:
+    post: ...
+    get: ...
+    put: ...
+    patch: ...
+    delete: ...
+    options:
+      summary: CORS support
+      responses:
+        200:
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
                 content: { }
 ```
 

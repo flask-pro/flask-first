@@ -1,6 +1,5 @@
 import re
 from pathlib import Path
-from typing import Any
 
 import marshmallow
 from flask import Flask
@@ -8,7 +7,6 @@ from flask import Request
 from flask import request
 from flask import Response
 from marshmallow.exceptions import ValidationError
-from werkzeug.datastructures import Headers
 from werkzeug.datastructures import MultiDict
 
 from .first import RequestSerializer
@@ -77,30 +75,27 @@ class First:
 
         self._mapped_routes_from_spec.append(rule)
 
-    def _extract_data_from_request(
-        self, request_obj: Request
-    ) -> tuple[Any, str or None, Headers, dict[str, Any] or None, dict, dict, Any or None]:
-        method = request_obj.method.lower()
+    @staticmethod
+    def _extract_method_from_request(request_obj: Request) -> str:
+        return request_obj.method.lower()
 
+    @staticmethod
+    def _extract_route_from_request(request_obj: Request) -> str:
         if request_obj.url_rule is not None:
             route = request_obj.url_rule.rule
         else:
             route = request_obj.url_rule
 
-        headers = request_obj.headers
+        return route
 
-        view_args = request_obj.view_args
-
-        args = self._resolved_params(request_obj.args)
-
-        cookies = self._resolved_params(request_obj.cookies)
-
+    @staticmethod
+    def _extract_json_from_request(request_obj: Request) -> dict or None:
         if request_obj.is_json:
             json = request_obj.get_json()
         else:
             json = None
 
-        return method, route, headers, view_args, args, cookies, json
+        return json
 
     @staticmethod
     def _resolved_params(payload: MultiDict) -> dict:
@@ -139,15 +134,13 @@ class First:
             if request.method in ('OPTIONS',):
                 return
 
-            (
-                method,
-                route,
-                headers,
-                view_args,
-                args,
-                cookies,
-                json,
-            ) = self._extract_data_from_request(request)
+            method = self._extract_method_from_request(request)
+            route = self._extract_route_from_request(request)
+            headers = request.headers
+            view_args = request.view_args
+            args = self._resolved_params(request.args)
+            cookies = self._resolved_params(request.cookies)
+            json = self._extract_json_from_request(request)
 
             if route not in self._mapped_routes_from_spec:
                 return
@@ -163,7 +156,7 @@ class First:
                     schema_fields = args_schema().fields
                     args = self._arg_to_list(args, schema_fields)
 
-            rv = RequestSerializer(
+            request_serializer = RequestSerializer(
                 self.spec,
                 method,
                 route_as_in_spec,
@@ -173,18 +166,23 @@ class First:
                 params=args,
                 json=json,
             )
-            rv.validate()
+            request_serializer.validate()
 
-            request.first_headers = rv.serialized_headers
-            request.first_view_args = rv.serialized_path_params
-            request.first_args = rv.serialized_params
-            request.first_cookies = rv.serialized_cookies
-            request.first_json = rv.serialized_json
+            request.extensions = {
+                'first': {
+                    'headers': request_serializer.serialized_headers,
+                    'view_args': request_serializer.serialized_path_params,
+                    'args': request_serializer.serialized_params,
+                    'cookies': request_serializer.serialized_cookies,
+                    'json': request_serializer.serialized_json,
+                }
+            }
 
     def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
-            method, route, _, _, _, _, json = self._extract_data_from_request(request)
+            method = self._extract_method_from_request(request)
+            route = self._extract_route_from_request(request)
             json = response.get_json()
 
             if route not in self._mapped_routes_from_spec:

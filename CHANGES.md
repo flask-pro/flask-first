@@ -1,3 +1,9 @@
+## Version 0.17.0
+
+* Authorization via HTTPBasicAuth and Bearer token supported.
+* Add append serialized path-parameters, arguments, json, cookie and headers to object of request
+  Flask.
+
 ## Version 0.16.1
 
 * Fix the display of the specification described in several files in Swagger UI.

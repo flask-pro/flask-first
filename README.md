@@ -6,9 +6,9 @@ Flask extension for using "specification first" and "API-first" principles.
 
 - [Flask-First](#flask-first)
   - [Features](#features)
-    - [Limitations](#limitations)
   - [Installation](#installation)
   - [Settings](#settings)
+  - [Tools](#tools)
   - [Data types](#data-types)
   - [Examples](#examples)
     - [Simple example](#simple-example)
@@ -21,22 +21,15 @@ Flask extension for using "specification first" and "API-first" principles.
 ## Features
 
 * `Application Factory` supported.
-* Validating and serializing headers of request from `request.headers` to `request.first_headers`.
-* Validating and serializing path parameters of request from `request.view_args`
-  to `request.first_view_args`.
-* Validating and serializing arguments of request from `request.args` to `request.first_args`.
-* Validating and serializing cookies of request from `request.cookies` to `request.first_cookies`.
-* Validating and serializing JSON of request from `request.json` to `request.first_json`.
+* Validating and serializing headers of request.
+* Validating and serializing path parameters of request.
+* Validating and serializing arguments of request.
+* Validating and serializing cookies of request.
+* Validating and serializing JSON of request.
 * Validating JSON from response for debugging.
 * Provides a Swagger UI.
 * Support OpenAPI version 3.1.0.
 * Support specification from multiple file.
-
-### Limitations
-
-Will be added in future releases.
-
-* Authorization not supported.
 
 ## Installation
 
@@ -52,6 +45,23 @@ $ pip install -U flask_first
 
 `FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
 developing. Must be disabled in a production environment.
+
+## Tools
+
+Possible to get data from path-parameters, arguments, JSON, cookies and headers in serialized form.
+Use flask-first object attached to the query.
+
+```python
+from flask import request
+
+
+def route_func():
+    path_parameters = request.extensions['first']['views']
+    args = request.extensions['first']['args']
+    json = request.extensions['first']['json']
+    cookies = request.extensions['first']['cookies']
+    headers = request.extensions['first']['headers']
+```
 
 ## Data types
 
@@ -76,29 +86,29 @@ OpenAPI 3 specification file `openapi.yaml`:
 ```yaml
 openapi: 3.1.0
 info:
-  title: Simple API for Flask-First
-  version: 1.0.0
+    title: Simple API for Flask-First
+    version: 1.0.0
 paths:
-  /{name}:
-    parameters:
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-    get:
-      operationId: index
-      summary: Returns a list of items
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
+    /{name}:
+        parameters:
+            -   name: name
+                in: path
+                required: true
+                schema:
                     type: string
+        get:
+            operationId: index
+            summary: Returns a list of items
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
 ```
 
 File with application initialization `main.py`:
@@ -146,45 +156,45 @@ Root file `openapi.yaml`:
 ```yaml
 openapi: 3.1.0
 info:
-  title: Simple API for Flask-First
-  version: 1.0.0
+    title: Simple API for Flask-First
+    version: 1.0.0
 paths:
-  /{name}:
-    $ref: 'name.openapi.yaml#/name'
+    /{name}:
+        $ref: 'name.openapi.yaml#/name'
 components:
-  schemas:
-    MessageField:
-      type: string
-      description: Field for message.
+    schemas:
+        MessageField:
+            type: string
+            description: Field for message.
 ```
 
 Child file `name.openapi.yaml`:
 
 ```yaml
 name:
-  parameters:
-    - name: name
-      in: path
-      required: true
-      schema:
-      type: string
-  get:
-    operationId: index
-    summary: Returns a list of items
-    responses:
-      '200':
-        $ref: '#/components/responses/ResponseOK'
+    parameters:
+        -   name: name
+            in: path
+            required: true
+            schema:
+            type: string
+    get:
+        operationId: index
+        summary: Returns a list of items
+        responses:
+            '200':
+                $ref: '#/components/responses/ResponseOK'
 components:
-  responses:
-    ResponseOK:
-      description: OK
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                $ref: 'openapi.yaml#/components/schemas/MessageField'
+    responses:
+        ResponseOK:
+            description: OK
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                $ref: 'openapi.yaml#/components/schemas/MessageField'
 ```
 
 ### CORS support
@@ -194,27 +204,27 @@ Your need enable CORS in Flask and adding `OPTIONS` method in your specification
 ```yaml
 ...
 paths:
-  /index:
-    post: ...
-    get: ...
-    put: ...
-    patch: ...
-    delete: ...
-    options:
-      summary: CORS support
-      responses:
-      200:
-        headers:
-          Access-Control-Allow-Origin:
-            schema:
-              type: string
-          Access-Control-Allow-Methods:
-            schema:
-              type: string
-          Access-Control-Allow-Headers:
-            schema:
-              type: string
-        content: { }
+    /index:
+        post: ...
+        get: ...
+        put: ...
+        patch: ...
+        delete: ...
+        options:
+            summary: CORS support
+            responses:
+            200:
+                headers:
+                    Access-Control-Allow-Origin:
+                        schema:
+                            type: string
+                    Access-Control-Allow-Methods:
+                        schema:
+                            type: string
+                    Access-Control-Allow-Headers:
+                        schema:
+                            type: string
+                content: { }
 ```
 
 ## Additional documentation

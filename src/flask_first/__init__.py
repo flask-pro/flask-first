@@ -134,27 +134,27 @@ class First:
             if request.method in ('OPTIONS',):
                 return
 
-            method = self._extract_method_from_request(request)
             route = self._extract_route_from_request(request)
-            headers = request.headers
-            view_args = request.view_args
-            args = self._resolved_params(request.args)
-            cookies = self._resolved_params(request.cookies)
-            json = self._extract_json_from_request(request)
-
             if route not in self._mapped_routes_from_spec:
                 return
 
             route_as_in_spec = self.route_to_openapi_format(route)
 
+            method = self._extract_method_from_request(request)
             params_schemas = self.spec.serialized_spec['paths'][route_as_in_spec][method].get(
                 'parameters'
             )
+            args = self._resolved_params(request.args)
             if params_schemas:
                 args_schema = params_schemas.get('args')
                 if args_schema:
                     schema_fields = args_schema().fields
                     args = self._arg_to_list(args, schema_fields)
+
+            headers = request.headers
+            view_args = request.view_args
+            cookies = self._resolved_params(request.cookies)
+            json = self._extract_json_from_request(request)
 
             request_serializer = RequestSerializer(
                 self.spec,
@@ -181,10 +181,7 @@ class First:
     def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
-            method = self._extract_method_from_request(request)
             route = self._extract_route_from_request(request)
-            json = response.get_json()
-
             if route not in self._mapped_routes_from_spec:
                 return response
 
@@ -197,6 +194,7 @@ class First:
                     f'Route <{e.args[0]}> not defined in specification.'
                 )
 
+            method = self._extract_method_from_request(request)
             try:
                 method_schema: dict = route_schema[method]
             except KeyError as e:
@@ -224,6 +222,7 @@ class First:
                 )
 
             if response_content_type == 'application/json':
+                json = response.get_json()
                 json_schema = content[response.content_type]['schema']
                 try:
                     if isinstance(json, list):

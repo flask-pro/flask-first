@@ -13,7 +13,7 @@ classifiers = [
   "Programming Language :: Python :: 3"
 ]
 dependencies = [
-  'Flask>=2.0.2',
+  'Flask>=2.0.3',
   'PyYAML>=6.0.1',
   'openapi-spec-validator>=0.5.0',
   'marshmallow>=3.14.1'
@@ -23,7 +23,7 @@ license = {file = "LICENSE"}
 name = "Flask-First"
 readme = "README.md"
 requires-python = ">=3.9"
-version = "0.16.1"
+version = "0.17.0"
 
 [project.optional-dependencies]
 dev = [

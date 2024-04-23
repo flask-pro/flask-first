@@ -90,10 +90,6 @@ class Resolver:
         return self._resolving(schema, self.abs_path)
 
 
-class Serializer:
-    pass
-
-
 class Specification:
     def __init__(self, path: Path or str, experimental_validator: bool = False):
         self.path = path

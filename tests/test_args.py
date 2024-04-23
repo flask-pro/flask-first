@@ -26,7 +26,7 @@ def test_specification__non_exist_args(fx_create_app):
 
 def test_specification__required_args(fx_create_app):
     def mini_endpoint(required_path) -> dict:
-        required_arg = request.first_args['required_arg']
+        required_arg = request.extensions['first']['args']['required_arg']
 
         return {'required_path': required_path, 'required_arg': required_arg}
 

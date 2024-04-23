@@ -90,9 +90,9 @@ def test_specification__items_list(fx_app, fx_client):
 def test_specification__args(fx_app, fx_client):
     def items_args() -> dict:
         return {
-            'page': request.first_args['page'],
-            'per_page': request.first_args['per_page'],
-            'page_list': request.first_args['page_list'],
+            'page': request.extensions['first']['args']['page'],
+            'per_page': request.extensions['first']['args']['per_page'],
+            'page_list': request.extensions['first']['args']['page_list'],
         }
 
     fx_app.extensions['first'].add_view_func(items_args)
@@ -316,7 +316,7 @@ def test_specification__resolving_references(fx_create_app):
 
 def test_specification__params__format():
     def mini_endpoint(uuid_from_path: str, datetime_from_path: str) -> dict:
-        args = request.first_args
+        args = request.extensions['first']['args']
         uuid_from_query = args['uuid_from_query']
         datetime_from_query = args['datetime_from_query']
 
@@ -360,8 +360,7 @@ def test_specification__params__format():
 
 def test_specification__param_as_list():
     def mini_endpoint() -> dict:
-        args = request.first_args
-        param_as_list = args['param_as_list']
+        param_as_list = request.extensions['first']['args']['param_as_list']
 
         assert isinstance(param_as_list, list)
         assert isinstance(param_as_list[0], uuid.UUID)

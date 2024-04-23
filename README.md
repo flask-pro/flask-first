@@ -95,7 +95,7 @@ paths:
       in: path
       required: true
       schema:
-       type: string
+        type: string
     get:
       operationId: index
       summary: Returns a list of items

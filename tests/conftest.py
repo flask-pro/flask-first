@@ -1,8 +1,10 @@
 import os
 from collections.abc import Iterable
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
+import yaml
 from flask import Flask
 from flask.testing import FlaskClient
 from flask_first import First
@@ -59,3 +61,90 @@ def fx_create_app():
             return test_client
 
     return _create_app
+
+
+@pytest.fixture
+def fx_make_minimal_spec() -> dict:
+    return {
+        'openapi': '3.1.0',
+        'info': {'title': 'API for testing Flask-First', 'version': '1.0.0'},
+        'paths': {
+            '/endpoint': {
+                'get': {
+                    'operationId': 'get_endpoint',
+                    'responses': {
+                        '200': {
+                            'description': 'OK',
+                            'content': {
+                                'application/json': {
+                                    'schema': {
+                                        'type': 'object',
+                                        'properties': {'message': {'type': 'string'}},
+                                    }
+                                }
+                            },
+                        }
+                    },
+                },
+                'post': {
+                    'operationId': 'post_endpoint',
+                    'requestBody': {
+                        'content': {
+                            'application/json': {
+                                'schema': {
+                                    'type': 'object',
+                                    'properties': {'message': {'type': 'string'}},
+                                }
+                            }
+                        }
+                    },
+                    'responses': {
+                        '201': {
+                            'description': 'OK',
+                            'content': {
+                                'application/json': {
+                                    'schema': {
+                                        'type': 'object',
+                                        'properties': {'message': {'type': 'string'}},
+                                    }
+                                }
+                            },
+                        },
+                        'default': {
+                            'description': 'OK',
+                            'content': {
+                                'application/json': {
+                                    'schema': {
+                                        'type': 'object',
+                                        'properties': {'message': {'type': 'string'}},
+                                    }
+                                }
+                            },
+                        },
+                    },
+                },
+            }
+        },
+    }
+
+
+@pytest.fixture
+def fx_make_spec_file(tmp_path, fx_make_minimal_spec):
+    def _make_spec(paths: dict = None, url: str = None, parameters: list = None) -> Path:
+        spec = deepcopy(fx_make_minimal_spec)
+
+        if paths:
+            spec['paths'] = paths
+        if parameters:
+            spec['paths']['/endpoint']['parameters'] = parameters
+        if url:
+            spec['paths'][url] = deepcopy(spec['paths']['/endpoint'])
+            spec['paths'].pop('/endpoint')
+
+        spec_file_path = tmp_path / 'openapi.yaml'
+        with open(spec_file_path, 'w') as file:
+            yaml.dump(spec, file)
+
+        return spec_file_path
+
+    return _make_spec

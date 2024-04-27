@@ -43,3 +43,20 @@ def test_spec_not_valid(spec):
 
     with pytest.raises(FirstOpenAPIValidation):
         First(spec, app=app, swagger_ui_path='/docs')
+
+
+def test_spec_validator(fx_make_spec_file):
+    spec = fx_make_spec_file()
+    app = Flask('check_v30_specs')
+    app.config['FIRST_RESPONSE_VALIDATION'] = True
+    app.config['FIRST_EXPERIMENTAL_VALIDATOR'] = True
+    first = First(spec, app=app, swagger_ui_path='/docs')
+
+    def get_endpoint() -> dict:
+        return {'message': 'OK'}
+
+    first.add_view_func(get_endpoint)
+
+    r = app.test_client().get('/endpoint', follow_redirects=True)
+    assert r.status_code == 200
+    assert r.json['message'] == 'OK'

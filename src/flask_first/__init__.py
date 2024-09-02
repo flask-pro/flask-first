@@ -236,7 +236,10 @@ class First:
                     else:
                         json_schema().load(json)
                 except ValidationError as e:
-                    raise FirstResponseJSONValidation(repr(e))
+                    raise FirstResponseJSONValidation(
+                        f'For <{method} {route}> and response body <{json}> raised error'
+                        f' <{repr(e)}>'
+                    )
 
             return response
 

@@ -1,3 +1,7 @@
+## Version 0.18.1
+
+* Improve exception message for response validation error.
+
 ## Version 0.17.0
 
 * Authorization via HTTPBasicAuth and Bearer token supported.

@@ -87,7 +87,7 @@ def _make_object_field(
         return schema_object
 
 
-def _make_array_field(schema: dict, datetime_format: str | None = None) -> fields.Field:
+def _make_array_field(schema: dict, datetime_format: Optional[str] = None) -> fields.Field:
     data_type = schema['items']['type']
     data_format = schema['items'].get('format')
     if data_type == 'object':
@@ -132,7 +132,7 @@ def _make_field_validators(schema: dict) -> list[validate.Validator]:
 
 
 def make_marshmallow_schema(
-    schema: dict, as_nested: bool = False, datetime_format: str = None
+    schema: dict, as_nested: bool = False, datetime_format: Optional[str] = None
 ) -> type[HashmapSchema] or Field or Nested or type or Boolean or Any:
     if 'nullable' in schema and schema.get('type', ...) is ...:
         field = FIELDS_VIA_TYPES['boolean']()

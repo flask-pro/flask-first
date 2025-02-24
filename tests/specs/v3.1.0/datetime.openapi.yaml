@@ -1,0 +1,28 @@
+openapi: 3.1.0
+info:
+  title: Mini API for testing Flask-First
+  version: 1.0.0
+paths:
+  /datetime:
+    post:
+      operationId: create_datetime
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                datetime:
+                  type: string
+                  format: date-time
+      responses:
+        default:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datetime:
+                    type: string
+                    format: date-time

@@ -1,3 +1,7 @@
+## Version 0.18.2
+
+* Add setting `FIRST_DATETIME_FORMAT`.
+
 ## Version 0.18.1
 
 * Improve exception message for response validation error.

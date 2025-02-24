@@ -49,6 +49,7 @@ def fx_create_app():
         app = Flask('testing_app')
         app.debug = True
         app.config['FIRST_RESPONSE_VALIDATION'] = True
+        app.config['FIRST_DATETIME_FORMAT'] = "%Y-%m-%dT%H:%M:%S.%fZ"
 
         first = First(path_to_spec, app, swagger_ui_path='/docs')
         for func in routes_functions:

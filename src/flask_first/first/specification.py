@@ -91,8 +91,14 @@ class Resolver:
 
 
 class Specification:
-    def __init__(self, path: Path or str, experimental_validator: bool = False):
+    def __init__(
+        self,
+        path: Path or str,
+        experimental_validator: bool = False,
+        datetime_format: Optional[str] = None,
+    ):
         self.path = path
+        self.datetime_format = datetime_format
         self.experimental_validator = experimental_validator
         self.raw_spec = Resolver(self.path).resolve()
         self._validating_openapi_file(self.path, self.experimental_validator)
@@ -153,9 +159,9 @@ class Specification:
     def _convert_parameters_to_schema(self, spec_without_refs) -> dict:
         schema = deepcopy(spec_without_refs)
         for _, path_item in schema['paths'].items():
-            common_parameters: list | None = path_item.pop('parameters', [])
+            common_parameters: Optional[list] = path_item.pop('parameters', [])
             for method, operation in path_item.items():
-                parameters_from_method: list | None = operation.get('parameters', [])
+                parameters_from_method: Optional[list] = operation.get('parameters', [])
 
                 combined_params = [*common_parameters, *parameters_from_method]
 
@@ -173,12 +179,18 @@ class Specification:
         if isinstance(converted_schema, dict):
             for key, value in converted_schema.items():
                 if key in {'header_args', 'view_args', 'args', 'cookie'}:
-                    converted_schema[key] = make_marshmallow_schema(value)
+                    converted_schema[key] = make_marshmallow_schema(
+                        value, datetime_format=self.datetime_format
+                    )
                 elif key == 'schema':
-                    converted_schema['schema'] = make_marshmallow_schema(value)
+                    converted_schema['schema'] = make_marshmallow_schema(
+                        value, datetime_format=self.datetime_format
+                    )
                 elif key == 'schemas':
                     for schema_name, schema_value in value.items():
-                        value[schema_name] = make_marshmallow_schema(schema_value)
+                        value[schema_name] = make_marshmallow_schema(
+                            schema_value, datetime_format=self.datetime_format
+                        )
                 else:
                     converted_schema[key] = self._convert_schemas(value)
             return converted_schema

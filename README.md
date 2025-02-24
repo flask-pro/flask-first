@@ -43,8 +43,10 @@ $ pip install -U flask_first
 
 ## Settings
 
-`FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
+* `FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
 developing. Must be disabled in a production environment.
+* `FIRST_DATETIME_FORMAT` - Default: `None`. Set format for `format: date-time`.
+Example: `%Y-%m-%dT%H:%M:%S.%fZ`.
 
 ## Tools
 

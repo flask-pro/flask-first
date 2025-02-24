@@ -1,4 +1,5 @@
 from typing import Any
+from typing import Optional
 
 from marshmallow import fields
 from marshmallow import INCLUDE
@@ -56,7 +57,7 @@ class HashmapSchema(Schema):
 
 
 def _make_object_field(
-    schema: dict, as_nested: bool = True, datetime_format: str | None = None
+    schema: dict, as_nested: bool = True, datetime_format: Optional[str] = None
 ) -> fields.Nested or type:
     fields_obj = {}
     for field_name, field_schema in schema['properties'].items():

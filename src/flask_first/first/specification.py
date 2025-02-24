@@ -95,7 +95,7 @@ class Specification:
         self,
         path: Path or str,
         experimental_validator: bool = False,
-        datetime_format: str | None = None,
+        datetime_format: Optional[str] = None,
     ):
         self.path = path
         self.datetime_format = datetime_format
@@ -159,9 +159,9 @@ class Specification:
     def _convert_parameters_to_schema(self, spec_without_refs) -> dict:
         schema = deepcopy(spec_without_refs)
         for _, path_item in schema['paths'].items():
-            common_parameters: list | None = path_item.pop('parameters', [])
+            common_parameters: Optional[list] = path_item.pop('parameters', [])
             for method, operation in path_item.items():
-                parameters_from_method: list | None = operation.get('parameters', [])
+                parameters_from_method: Optional[list] = operation.get('parameters', [])
 
                 combined_params = [*common_parameters, *parameters_from_method]
 

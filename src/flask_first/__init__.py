@@ -247,11 +247,13 @@ class First:
         self.app = app
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
         self.app.config.setdefault('FIRST_EXPERIMENTAL_VALIDATOR', False)
+        self.app.config.setdefault('FIRST_DATETIME_FORMAT', None)
         self.app.extensions['first'] = self
 
         self.spec = Specification(
             self.path_to_spec,
             experimental_validator=self.app.config['FIRST_EXPERIMENTAL_VALIDATOR'],
+            datetime_format=self.app.config['FIRST_DATETIME_FORMAT'],
         )
 
         if self.swagger_ui_path:

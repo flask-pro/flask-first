@@ -55,7 +55,9 @@ class HashmapSchema(Schema):
         unknown = INCLUDE
 
 
-def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested or type:
+def _make_object_field(
+    schema: dict, as_nested: bool = True, datetime_format: str | None = None
+) -> fields.Nested or type:
     fields_obj = {}
     for field_name, field_schema in schema['properties'].items():
         if (
@@ -65,9 +67,11 @@ def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested or
         ):
             field = HashmapField()
         elif field_schema['type'] == 'object':
-            field = make_marshmallow_schema(field_schema, as_nested=True)
+            field = make_marshmallow_schema(
+                field_schema, as_nested=True, datetime_format=datetime_format
+            )
         else:
-            field = make_marshmallow_schema(field_schema)
+            field = make_marshmallow_schema(field_schema, datetime_format=datetime_format)
 
         if field_name in schema.get('required', ()):
             field.required = True
@@ -82,15 +86,18 @@ def _make_object_field(schema: dict, as_nested: bool = True) -> fields.Nested or
         return schema_object
 
 
-def _make_array_field(schema: dict) -> fields.Field:
+def _make_array_field(schema: dict, datetime_format: str | None = None) -> fields.Field:
     data_type = schema['items']['type']
     data_format = schema['items'].get('format')
     if data_type == 'object':
-        nested_field = _make_object_field(schema['items'])
+        nested_field = _make_object_field(schema['items'], datetime_format=datetime_format)
         nested_field.many = True
         field = nested_field
     elif data_format in FIELDS_VIA_FORMATS:
-        nested_field = FIELDS_VIA_FORMATS[data_format]()
+        if data_format == 'date-time':
+            nested_field = FIELDS_VIA_FORMATS['date-time'](format=datetime_format)
+        else:
+            nested_field = FIELDS_VIA_FORMATS[data_format]()
         field = fields.List(nested_field)
     else:
         nested_field = FIELDS_VIA_TYPES[data_type]()
@@ -124,7 +131,7 @@ def _make_field_validators(schema: dict) -> list[validate.Validator]:
 
 
 def make_marshmallow_schema(
-    schema: dict, as_nested: bool = False
+    schema: dict, as_nested: bool = False, datetime_format: str = None
 ) -> type[HashmapSchema] or Field or Nested or type or Boolean or Any:
     if 'nullable' in schema and schema.get('type', ...) is ...:
         field = FIELDS_VIA_TYPES['boolean']()
@@ -135,7 +142,11 @@ def make_marshmallow_schema(
     elif 'oneOf' in schema:
         field = _make_multiple_field(schema['oneOf'], 'oneOf')
     elif schema.get('format'):
-        field = FIELDS_VIA_FORMATS[schema['format']]()
+        if schema['format'] == 'date-time':
+            field = FIELDS_VIA_FORMATS['date-time'](format=datetime_format)
+        else:
+            field = FIELDS_VIA_FORMATS[schema['format']]()
+
     elif (
         schema.get('properties') is None
         and schema['type'] == 'object'
@@ -143,9 +154,9 @@ def make_marshmallow_schema(
     ):
         field = HashmapSchema
     elif schema['type'] == 'object':
-        field = _make_object_field(schema, as_nested=as_nested)
+        field = _make_object_field(schema, as_nested=as_nested, datetime_format=datetime_format)
     elif schema['type'] == 'array':
-        field = _make_array_field(schema)
+        field = _make_array_field(schema, datetime_format=datetime_format)
     else:
         field = FIELDS_VIA_TYPES[schema['type']]()
 

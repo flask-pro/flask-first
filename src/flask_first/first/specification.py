@@ -91,8 +91,14 @@ class Resolver:
 
 
 class Specification:
-    def __init__(self, path: Path or str, experimental_validator: bool = False):
+    def __init__(
+        self,
+        path: Path or str,
+        experimental_validator: bool = False,
+        datetime_format: str | None = None,
+    ):
         self.path = path
+        self.datetime_format = datetime_format
         self.experimental_validator = experimental_validator
         self.raw_spec = Resolver(self.path).resolve()
         self._validating_openapi_file(self.path, self.experimental_validator)
@@ -173,12 +179,18 @@ class Specification:
         if isinstance(converted_schema, dict):
             for key, value in converted_schema.items():
                 if key in {'header_args', 'view_args', 'args', 'cookie'}:
-                    converted_schema[key] = make_marshmallow_schema(value)
+                    converted_schema[key] = make_marshmallow_schema(
+                        value, datetime_format=self.datetime_format
+                    )
                 elif key == 'schema':
-                    converted_schema['schema'] = make_marshmallow_schema(value)
+                    converted_schema['schema'] = make_marshmallow_schema(
+                        value, datetime_format=self.datetime_format
+                    )
                 elif key == 'schemas':
                     for schema_name, schema_value in value.items():
-                        value[schema_name] = make_marshmallow_schema(schema_value)
+                        value[schema_name] = make_marshmallow_schema(
+                            schema_value, datetime_format=self.datetime_format
+                        )
                 else:
                     converted_schema[key] = self._convert_schemas(value)
             return converted_schema

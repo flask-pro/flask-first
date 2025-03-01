@@ -5,8 +5,12 @@ class FirstException(Exception):
     """Common exception."""
 
 
-class FirstOpenAPIResolverError(FirstException):
-    """Exception for specification resolver error."""
+class FirstYAMLReaderError(FirstException):
+    """Exception for yaml file loading error."""
+
+
+class FirstResolverError(FirstException):
+    """Exception for specification from yaml file resolver error."""
 
 
 class FirstOpenAPIValidation(FirstException):

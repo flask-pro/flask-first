@@ -39,7 +39,7 @@ class YAMLReader:
             except FileNotFoundError:
                 raise FirstYAMLReaderError(f'No such file or directory: <{file_path}>')
 
-    def search_file(self, obj: dict | list) -> None:
+    def search_file(self, obj: dict or list) -> None:
         if isinstance(obj, dict):
             ref = obj.get('$ref')
             if ref:

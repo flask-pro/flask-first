@@ -1,3 +1,7 @@
+## Version 0.19.0
+
+* Remake loading from yaml files.
+
 ## Version 0.18.2
 
 * Add setting `FIRST_DATETIME_FORMAT`.

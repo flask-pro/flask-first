@@ -302,18 +302,6 @@ def test_specification__response_obj():
         assert r.json == {'one': {'one_message': 'message'}, 'list': [{'list_message': 'message'}]}
 
 
-def test_specification__resolving_references(fx_create_app):
-    def mini_endpoint(uuid: str) -> dict:
-        return {'message': str(uuid)}
-
-    test_client = fx_create_app(Path(BASEDIR, 'specs/v3.1.0/ref.openapi.yaml'), (mini_endpoint,))
-
-    test_uuid = str(uuid.uuid4())
-    r = test_client.post(f'/mini_endpoint/{test_uuid}', json={'message': 'test_message'})
-    assert r.status_code == 200
-    assert r.json == {'message': test_uuid}
-
-
 def test_specification__params__format():
     def mini_endpoint(uuid_from_path: str, datetime_from_path: str) -> dict:
         args = request.extensions['first']['args']

@@ -16,12 +16,12 @@ paths:
                   type: string
                   format: binary
       responses:
-        204:
+        '204':
           $ref: '#/components/responses/EmptyBody'
     get:
       operationId: download_file
       responses:
-        200:
+        '200':
           description: OK
           content:
             '*/*':

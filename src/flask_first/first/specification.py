@@ -1,93 +1,15 @@
-from collections.abc import Hashable
-from collections.abc import Mapping
 from copy import deepcopy
-from functools import reduce
 from pathlib import Path
-from typing import Any
 from typing import Optional
 
 from openapi_spec_validator import validate
-from openapi_spec_validator.readers import read_from_filename
 from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
 
 from ..schema.schema_maker import make_marshmallow_schema
-from .exceptions import FirstOpenAPIResolverError
 from .exceptions import FirstOpenAPIValidation
+from .loaders import load_from_yaml
 from .validator import OpenAPI310ValidationError
 from .validator import Validator
-
-
-class Resolver:
-    """
-    This class creates a dictionary from the specification that contains resolved schema references.
-    Specification from several files are supported.
-    """
-
-    def __init__(self, abs_path: Path or str):
-        self.abs_path = Path(abs_path)
-        self.root_dir = self.abs_path.resolve().parent
-
-    @staticmethod
-    def file_to_dict(abs_path: Path) -> Mapping[Hashable, Any]:
-        try:
-            spec_as_dict, _ = read_from_filename(str(abs_path))
-        except OSError as e:
-            raise FirstOpenAPIResolverError(e)
-        return spec_as_dict
-
-    @staticmethod
-    def get_value_of_key_from_dict(source_dict: dict, key: Hashable) -> Any or KeyError:
-        return source_dict[key]
-
-    def _get_schema_via_local_ref(self, root_schema: dict, keys: dict) -> dict:
-        try:
-            return reduce(self.get_value_of_key_from_dict, keys, root_schema)
-        except KeyError:
-            raise FirstOpenAPIResolverError(f'No such path: {keys}')
-
-    def _get_schema_from_file_ref(self, root_dir: Path, relative_path: Path, keys: dict) -> dict:
-        abs_path_file = Path(root_dir, relative_path)
-        root_schema = self.file_to_dict(abs_path_file)
-        return self._get_schema_via_local_ref(root_schema, keys)
-
-    def _resolving(self, schema: dict, relative_path_to_file_schema: str) -> dict or list[dict]:
-        if isinstance(schema, dict):
-            if '$ref' in schema:
-                try:
-                    relative_file_path_from_ref, local_path = schema['$ref'].split('#/')
-                except AttributeError:
-                    raise FirstOpenAPIResolverError(f'"$ref" <{schema["$ref"]}> must be string.')
-
-                local_path_parts = local_path.split('/')
-
-                if relative_file_path_from_ref:
-                    schema_from_ref = self._get_schema_from_file_ref(
-                        self.root_dir, relative_file_path_from_ref, local_path_parts
-                    )
-                    schema = self._resolving(schema_from_ref, relative_file_path_from_ref)
-                else:
-                    schema_from_ref = self._get_schema_from_file_ref(
-                        self.root_dir, relative_path_to_file_schema, local_path_parts
-                    )
-                    schema = self._resolving(schema_from_ref, relative_path_to_file_schema)
-
-            else:
-                for key, value in schema.items():
-                    schema[key] = self._resolving(value, relative_path_to_file_schema)
-
-            return schema
-
-        if isinstance(schema, list):
-            schemas = []
-            for item in schema:
-                schemas.append(self._resolving(item, relative_path_to_file_schema))
-            return schemas
-
-        return schema
-
-    def resolve(self) -> Mapping[Hashable, Any]:
-        schema = self.file_to_dict(self.abs_path)
-        return self._resolving(schema, self.abs_path)
 
 
 class Specification:
@@ -100,7 +22,7 @@ class Specification:
         self.path = path
         self.datetime_format = datetime_format
         self.experimental_validator = experimental_validator
-        self.raw_spec = Resolver(self.path).resolve()
+        self.raw_spec = load_from_yaml(self.path)
         self._validating_openapi_file(self.path, self.experimental_validator)
         self.resolved_spec = self._convert_parameters_to_schema(self.raw_spec)
         self.serialized_spec = self._convert_schemas(self.resolved_spec)

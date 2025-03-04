@@ -1,3 +1,7 @@
+## Version 0.19.1
+
+* Fix ref resolver.
+
 ## Version 0.19.0
 
 * Remake loading from yaml files.

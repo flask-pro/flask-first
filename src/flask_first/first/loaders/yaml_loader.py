@@ -1,4 +1,5 @@
 from collections.abc import Hashable
+from copy import deepcopy
 from functools import reduce
 from pathlib import Path
 from typing import Any
@@ -25,25 +26,27 @@ class YAMLReader:
             s = yaml.safe_load(f)
         return s
 
-    def add_file_to_store(self, ref: str) -> None:
+    def add_file_to_store(self, file_path: str) -> None:
+        path_to_spec_file = Path(self.path.parent, file_path)
+
         try:
-            file_path, node_path = ref.split('#/')
-        except (AttributeError, ValueError):
-            raise FirstYAMLReaderError(f'"$ref" with value <{ref}> is not valid.')
+            self.store[file_path] = self._yaml_to_dict(path_to_spec_file)
+        except FileNotFoundError:
+            raise FirstYAMLReaderError(f'No such file or directory: <{file_path}>')
 
-        if file_path and file_path not in self.store:
-            path_to_spec_file = Path(self.path.parent, file_path)
-
-            try:
-                self.store[file_path] = self._yaml_to_dict(path_to_spec_file)
-            except FileNotFoundError:
-                raise FirstYAMLReaderError(f'No such file or directory: <{file_path}>')
+        return self.store[file_path]
 
     def search_file(self, obj: dict or list) -> None:
         if isinstance(obj, dict):
             ref = obj.get('$ref')
             if ref:
-                self.add_file_to_store(ref)
+                try:
+                    file_path, _ = ref.split('#/')
+                except (AttributeError, ValueError):
+                    raise FirstYAMLReaderError(f'"$ref" with value <{ref}> is not valid.')
+
+                if file_path and file_path not in self.store:
+                    self.search_file(self.add_file_to_store(file_path))
             else:
                 for _, v in obj.items():
                     self.search_file(v)
@@ -62,7 +65,9 @@ class YAMLReader:
         return self
 
 
-class Resolver:
+class RefResolver:
+    """Resolve links to various parts of the specification."""
+
     def __init__(self, yaml_reader: YAMLReader):
         self.yaml_reader = yaml_reader
         self.resolved_spec = None
@@ -74,23 +79,18 @@ class Resolver:
             return source_dict[key]
 
         try:
-            return reduce(get_value_of_key_from_dict, keys, self.yaml_reader.store[file_path])
+            return deepcopy(
+                reduce(get_value_of_key_from_dict, keys, self.yaml_reader.store[file_path])
+            )
         except KeyError:
             raise FirstResolverError(f'No such path: "{node_path}"')
 
-    def _get_schema(self, root_file_path: str, ref: str) -> Any:
-        try:
-            file_path, node_path = ref.split('#/')
-        except (AttributeError, ValueError):
-            raise FirstResolverError(
-                f'"$ref" with value <{ref}> is not valid in file <{root_file_path}>'
-            )
-
+    def _get_schema(self, root_file_name: str, file_path: str or None, node_path: str) -> Any:
         if file_path and node_path:
             obj = self._get_schema_via_local_ref(file_path, node_path)
 
         elif node_path and not file_path:
-            obj = self._get_schema_via_local_ref(root_file_path, node_path)
+            obj = self._get_schema_via_local_ref(root_file_name, node_path)
 
         else:
             raise NotImplementedError
@@ -101,7 +101,23 @@ class Resolver:
         if isinstance(obj, dict):
             ref = obj.get('$ref', ...)
             if ref is not ...:
-                obj = self._resolving_all_refs(file_path, self._get_schema(file_path, ref))
+                try:
+                    file_path_from_ref, node_path = ref.split('#/')
+                except (AttributeError, ValueError):
+                    raise FirstResolverError(
+                        f'"$ref" with value <{ref}> is not valid in file <{file_path}>'
+                    )
+
+                if file_path_from_ref:
+                    obj = self._resolving_all_refs(
+                        file_path_from_ref,
+                        self._get_schema(file_path, file_path_from_ref, node_path),
+                    )
+                else:
+                    obj = self._resolving_all_refs(
+                        file_path, self._get_schema(file_path, file_path_from_ref, node_path)
+                    )
+
             else:
                 for key, value in obj.items():
                     obj[key] = self._resolving_all_refs(file_path, value)
@@ -114,14 +130,14 @@ class Resolver:
 
         return obj
 
-    def resolving(self) -> 'Resolver':
+    def resolving(self) -> 'RefResolver':
         root_file_path = self.yaml_reader.root_file_name
         root_spec = self.yaml_reader.store[root_file_path]
         self.resolved_spec = self._resolving_all_refs(root_file_path, root_spec)
         return self
 
 
-def load_from_yaml(path: Path) -> Resolver:
+def load_from_yaml(path: Path) -> RefResolver:
     yaml_reader = YAMLReader(path).load()
-    resolved_obj = Resolver(yaml_reader).resolving()
+    resolved_obj = RefResolver(yaml_reader).resolving()
     return resolved_obj.resolved_spec

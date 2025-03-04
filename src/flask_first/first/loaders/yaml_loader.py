@@ -122,7 +122,7 @@ class RefResolver:
                 for key, value in obj.items():
                     obj[key] = self._resolving_all_refs(file_path, value)
 
-        elif isinstance(obj, list):
+        if isinstance(obj, list):
             objs = []
             for item_obj in obj:
                 objs.append(self._resolving_all_refs(file_path, item_obj))

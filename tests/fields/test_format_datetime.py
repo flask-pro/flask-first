@@ -6,10 +6,10 @@ from flask import request
 from flask_first.first.exceptions import FirstRequestJSONValidation
 from flask_first.first.exceptions import FirstResponseJSONValidation
 
-from .conftest import BASEDIR
+from tests.conftest import BASEDIR
 
 
-def test_responses__datetime(fx_create_app):
+def test_format_datetime(fx_create_app):
     def create_datetime() -> dict:
         datetime = request.extensions['first']['json']['datetime'].strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         return {'datetime': datetime}
@@ -24,7 +24,7 @@ def test_responses__datetime(fx_create_app):
     assert r.json['datetime'] == json['datetime']
 
 
-def test_responses__request_datetime_error(fx_create_app):
+def test_request_datetime_error(fx_create_app):
     def create_datetime() -> dict:
         datetime = request.extensions['first']['json']['datetime']
         return {'datetime': datetime}
@@ -39,7 +39,7 @@ def test_responses__request_datetime_error(fx_create_app):
         test_client.post('/datetime', json=json)
 
 
-def test_responses__response_datetime_error(fx_create_app):
+def test_response_datetime_error(fx_create_app):
     def create_datetime() -> dict:
         datetime = request.extensions['first']['json']['datetime'].isoformat()
         return {'datetime': datetime}

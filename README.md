@@ -10,6 +10,7 @@ Flask extension for using "specification first" and "API-first" principles.
   - [Settings](#settings)
   - [Tools](#tools)
   - [Data types](#data-types)
+    - [`date-time` format](#date-time-format)
   - [Examples](#examples)
     - [Simple example](#simple-example)
     - [Specification from multiple file](#specification-from-multiple-file)
@@ -30,6 +31,7 @@ Flask extension for using "specification first" and "API-first" principles.
 * Provides a Swagger UI.
 * Support OpenAPI version 3.1.0.
 * Support specification from multiple file.
+* The time zone is always UTC.
 
 ## Installation
 
@@ -78,6 +80,11 @@ Supported formats for string type field:
 * ipv6
 * uri
 * binary
+
+### `date-time` format
+
+For `date-dime` format, the time zone is enforced set in the UTC. The time zone of the incoming
+DateTime object is discarded and set as UTC.
 
 ## Examples
 

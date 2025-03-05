@@ -1,3 +1,4 @@
+from datetime import UTC
 from typing import Any
 from typing import Optional
 
@@ -39,7 +40,7 @@ FIELDS_VIA_TYPES = {
 
 FIELDS_VIA_FORMATS = {
     'uuid': fields.UUID,
-    'date-time': fields.DateTime,
+    'date-time': fields.AwareDateTime,
     'date': fields.Date,
     'time': fields.Time,
     'email': fields.Email,
@@ -96,7 +97,9 @@ def _make_array_field(schema: dict, datetime_format: Optional[str] = None) -> fi
         field = nested_field
     elif data_format in FIELDS_VIA_FORMATS:
         if data_format == 'date-time':
-            nested_field = FIELDS_VIA_FORMATS['date-time'](format=datetime_format)
+            nested_field = FIELDS_VIA_FORMATS['date-time'](
+                format=datetime_format, default_timezone=UTC
+            )
         else:
             nested_field = FIELDS_VIA_FORMATS[data_format]()
         field = fields.List(nested_field)
@@ -144,7 +147,7 @@ def make_marshmallow_schema(
         field = _make_multiple_field(schema['oneOf'], 'oneOf')
     elif schema.get('format'):
         if schema['format'] == 'date-time':
-            field = FIELDS_VIA_FORMATS['date-time'](format=datetime_format)
+            field = FIELDS_VIA_FORMATS['date-time'](format=datetime_format, default_timezone=UTC)
         else:
             field = FIELDS_VIA_FORMATS[schema['format']]()
 

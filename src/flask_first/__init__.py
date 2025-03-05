@@ -141,7 +141,7 @@ class First:
             route_as_in_spec = self.route_to_openapi_format(route)
 
             method = self._extract_method_from_request(request)
-            params_schemas = self.spec.serialized_spec['paths'][route_as_in_spec][method].get(
+            params_schemas = self.spec.deserialized_spec['paths'][route_as_in_spec][method].get(
                 'parameters'
             )
             args = self._resolved_params(request.args)
@@ -188,7 +188,7 @@ class First:
             route_as_in_spec = self.route_to_openapi_format(route)
 
             try:
-                route_schema: dict = self.spec.serialized_spec['paths'][route_as_in_spec]
+                route_schema: dict = self.spec.deserialized_spec['paths'][route_as_in_spec]
             except KeyError as e:
                 raise FirstResponseJSONValidation(
                     f'Route <{e.args[0]}> not defined in specification.'

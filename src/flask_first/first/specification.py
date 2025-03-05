@@ -25,7 +25,7 @@ class Specification:
         self.raw_spec = load_from_yaml(self.path)
         self._validating_openapi_file(self.path, self.experimental_validator)
         self.resolved_spec = self._convert_parameters_to_schema(self.raw_spec)
-        self.serialized_spec = self._convert_schemas(self.resolved_spec)
+        self.deserialized_spec = self._convert_schemas(self.resolved_spec)
 
     def _validating_openapi_file(self, path: Path, experimental_validator: bool):
         if experimental_validator:

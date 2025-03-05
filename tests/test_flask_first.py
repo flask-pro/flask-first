@@ -310,12 +310,12 @@ def test_specification__params__format():
 
         assert isinstance(uuid_from_query, uuid.UUID)
         assert uuid_from_path == str(uuid_from_query)
-        assert datetime_from_path == str(datetime_from_query).replace(' ', 'T')
+        assert datetime_from_path == datetime_from_query.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         return {
             'uuid_from_path': uuid_from_path,
             'uuid_from_query': str(uuid_from_query),
-            'datetime_from_query': str(datetime_from_query).replace(' ', 'T'),
+            'datetime_from_query': datetime_from_query.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
         }
 
     first = First(Path(BASEDIR, 'specs/v3.1.0/parameters.openapi.yaml'))
@@ -325,6 +325,7 @@ def test_specification__params__format():
         app.debug = 1
         app.testing = 1
         app.config['FIRST_RESPONSE_VALIDATION'] = True
+        app.config['FIRST_DATETIME_FORMAT'] = "%Y-%m-%dT%H:%M:%S.%fZ"
         first.init_app(app)
         first.add_view_func(mini_endpoint)
         return app
@@ -333,10 +334,10 @@ def test_specification__params__format():
 
     with app.test_client() as test_client:
         test_uuid = str(uuid.uuid4())
-        test_datetime = '2021-12-24T18:32:05'
+        test_datetime = '2021-12-24T18:32:05.123456Z'
+        query_string = {'uuid_from_query': test_uuid, 'datetime_from_query': test_datetime}
         r = test_client.get(
-            f'/parameters_endpoint/{test_uuid}/{test_datetime}',
-            query_string={'uuid_from_query': test_uuid, 'datetime_from_query': test_datetime},
+            f'/parameters_endpoint/{test_uuid}/{test_datetime}', query_string=query_string
         )
         assert r.status_code == 200
         assert r.json == {

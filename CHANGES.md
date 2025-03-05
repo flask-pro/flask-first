@@ -1,3 +1,7 @@
+## Version 0.20.0
+
+* For date and time from `date-dime` format fields, the time zone is enforced set in the UTC.
+
 ## Version 0.19.1
 
 * Fix ref resolver.

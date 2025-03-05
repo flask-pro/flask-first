@@ -28,7 +28,7 @@ class RequestSerializer:
         json: dict = None,
     ) -> None:
         self.spec = spec
-        self._paths_schema = self.spec.serialized_spec['paths']
+        self._paths_schema = self.spec.deserialized_spec['paths']
 
         self.method = method.lower()
         self.endpoint = endpoint

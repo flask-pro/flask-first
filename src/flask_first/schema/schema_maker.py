@@ -1,4 +1,4 @@
-from datetime import UTC
+from datetime import timezone
 from typing import Any
 from typing import Optional
 
@@ -98,7 +98,7 @@ def _make_array_field(schema: dict, datetime_format: Optional[str] = None) -> fi
     elif data_format in FIELDS_VIA_FORMATS:
         if data_format == 'date-time':
             nested_field = FIELDS_VIA_FORMATS['date-time'](
-                format=datetime_format, default_timezone=UTC
+                format=datetime_format, default_timezone=timezone.utc
             )
         else:
             nested_field = FIELDS_VIA_FORMATS[data_format]()
@@ -147,7 +147,9 @@ def make_marshmallow_schema(
         field = _make_multiple_field(schema['oneOf'], 'oneOf')
     elif schema.get('format'):
         if schema['format'] == 'date-time':
-            field = FIELDS_VIA_FORMATS['date-time'](format=datetime_format, default_timezone=UTC)
+            field = FIELDS_VIA_FORMATS['date-time'](
+                format=datetime_format, default_timezone=timezone.utc
+            )
         else:
             field = FIELDS_VIA_FORMATS[schema['format']]()
 

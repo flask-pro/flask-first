@@ -10,7 +10,7 @@ PRE_COMMIT = $(VENV_DIR)/bin/pre-commit
 
 
 install: clean venv
-	pyenv local 3.12 3.13 3.14
+	pyenv local
 	pre-commit install
 
 venv: venv/pyvenv.cfg $(PKG_DIR)

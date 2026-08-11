@@ -35,7 +35,7 @@ Flask extension for using "specification first" and "API-first" principles.
 
 ## Installation
 
-Recommended using the latest version of Python. Flask-First supports Python 3.9 and newer.
+Recommended using the latest version of Python. Flask-First supports Python 3.12 and newer.
 
 Install and update using `pip`:
 

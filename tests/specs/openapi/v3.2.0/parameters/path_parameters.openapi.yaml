@@ -1,25 +1,29 @@
 openapi: 3.2.0
 info:
-  title: Simple API for Flask-First
+  title: OpenAPI file for testing Flask-First.
   version: 1.0.0
 paths:
-  /{name}:
+  /endpoint/{path_param_1}/{path_param_2}:
     parameters:
-    - name: name
+    - name: path_param_1
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: path_param_2
       in: path
       required: true
       schema:
         type: string
     get:
-      operationId: index
-      summary: Returns a list of items
       responses:
         '200':
-          description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  path_param_1:
+                    type: string
+                  path_param_2:
                     type: string

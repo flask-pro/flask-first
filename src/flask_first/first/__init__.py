@@ -1,4 +1,4 @@
-from .serializers import RequestSerializer
-from .specification import Specification
+from flask_first.first.serializers import RequestAdapter
+from flask_first.first.serializers import ResponseAdapter
 
-__all__ = ['Specification', 'RequestSerializer']
+__all__ = ['RequestAdapter', 'ResponseAdapter']

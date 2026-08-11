@@ -4,7 +4,7 @@ requires = ["setuptools>=42", "wheel"]
 
 [project]
 authors = [
-  {name = "Konstantin Fadeev", email = "fadeev@legalact.pro"}
+  {name = "Konstantin Fadeev", email = "jredkiy@yandex.ru"}
 ]
 classifiers = [
   "Framework :: Flask",
@@ -16,18 +16,19 @@ dependencies = [
   'Flask>=2.0.3',
   'PyYAML>=6.0.1',
   'openapi-spec-validator>=0.5.0',
-  'marshmallow>=3.14.1'
+  'marshmallow>=4.0.0',
+  'Schema-First==0.16.3'
 ]
 description = "Flask extension for using 'specification first' or 'API-first' principle via OpenAPI specification."
 license = {file = "LICENSE"}
 name = "Flask-First"
 readme = "README.md"
 requires-python = ">=3.9"
-version = "0.20.0"
+version = "0.21.0"
 
 [project.optional-dependencies]
 dev = [
-  "bandit==1.7.9",
+  "bandit==1.9.4",
   "build==1.2.1",
   "mypy==1.11.2",
   "pre-commit==3.8.0",

@@ -93,7 +93,7 @@ DateTime object is discarded and set as UTC.
 OpenAPI 3 specification file `openapi.yaml`:
 
 ```yaml
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Simple API for Flask-First
   version: 1.0.0
@@ -109,7 +109,7 @@ paths:
       operationId: index
       summary: Returns a list of items
       responses:
-        200:
+        '200':
           description: OK
           content:
             application/json:
@@ -118,29 +118,30 @@ paths:
                 properties:
                   message:
                     type: string
+
 ```
 
 File with application initialization `main.py`:
 
 ```python
 import os
+from pathlib import Path
 
 from flask import Flask
 from flask_first import First
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-path_to_spec = os.path.join(basedir, 'openapi.yaml')
+path_to_spec = Path(basedir, 'openapi.yaml')
 
 app = Flask(__name__)
 app.config['FIRST_RESPONSE_VALIDATION'] = True
 first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
 
+@first.route('/{name}')
 def index(name):
     return {'message': name}
 
-
-first.add_view_func(index)
 
 if __name__ == '__main__':
     app.run()
@@ -163,7 +164,7 @@ specification with name `openapi.yaml`.
 Root file `openapi.yaml`:
 
 ```yaml
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Simple API for Flask-First
   version: 1.0.0

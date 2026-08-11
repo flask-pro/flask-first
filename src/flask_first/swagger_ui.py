@@ -4,8 +4,7 @@ from flask import Blueprint
 from flask import Flask
 from flask import render_template
 from flask import url_for
-
-from .first.specification import Specification
+from schema_first import Specification
 
 
 def add_swagger_ui_blueprint(app: Flask, spec: Specification, swagger_ui_path: str or Path) -> None:
@@ -27,6 +26,6 @@ def add_swagger_ui_blueprint(app: Flask, spec: Specification, swagger_ui_path: s
 
     @swagger_ui.route('/openapi.json')
     def get_file_spec():
-        return spec.raw_spec
+        return spec.openapi.raw_spec
 
     app.register_blueprint(swagger_ui)

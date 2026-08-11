@@ -1,149 +1,122 @@
-import re
+from typing import Any
 
-from marshmallow import EXCLUDE
-from marshmallow.exceptions import ValidationError
-
-from .exceptions import FirstEndpointValidation
-from .exceptions import FirstRequestArgsValidation
-from .exceptions import FirstRequestCookiesValidation
-from .exceptions import FirstRequestHeadersValidation
-from .exceptions import FirstRequestJSONValidation
-from .exceptions import FirstRequestPathArgsValidation
-from .specification import Specification
+from flask import Request
+from flask import Response
+from marshmallow import fields
+from schema_first import Specification
+from werkzeug.routing import Rule
 
 
-class RequestSerializer:
-    RE_ENDPOINT = r'^/[\w/{}-]*$'
-    DEFAULT_CONTENT_TYPE = 'application/json'
+class RequestAdapter:
+
+    def __init__(self, request: Request, map_rules_to_paths: dict, spec: Specification) -> None:
+        self.request = request
+        self.map_rules_to_paths = map_rules_to_paths
+        self.spec = spec
+
+        self.method = self.request.method.lower()
+        self.endpoint = self._get_endpoint()
+        self.headers = dict(self.request.headers)
+        self.cookies = self.request.cookies
+        self.paths = self.request.view_args
+        self.queries = self._serialize_args(self.request.args)
+        self.content_type = self.request.mimetype
+        self.body = self.request.get_json() if self.request.is_json else self.request.data
+
+    def _get_endpoint(self) -> str | Rule | None | Any:
+        if self.request.url_rule is not None:
+            rule = self.request.url_rule.rule
+        elif self.request.url_rule is str:
+            rule = self.request.url_rule
+        else:
+            rule = self.request.path
+
+        endpoint = self.map_rules_to_paths.get(rule)
+        if endpoint:
+            return endpoint
+
+        return rule
+
+    def _serialize_args(self, raw_args) -> dict[str, Any]:
+        serialized_args = {}
+
+        raw_args = self.request.args.to_dict(flat=False)
+        if not raw_args:
+            return serialized_args
+
+        paths = self.spec.reassembly_spec['paths']
+        path_from_spec = self.map_rules_to_paths[self.request.url_rule.rule]
+        params_schemas = paths[path_from_spec][self.method].get('parameters')
+        if params_schemas:
+            args_schema = params_schemas.get('queries')
+            if args_schema:
+                schema_of_args = args_schema['schema']()
+                for name, value in raw_args.items():
+                    arg_field_from_schema = schema_of_args.fields.get(name)
+                    if arg_field_from_schema is None:
+                        serialized_args[name] = value
+                    elif isinstance(schema_of_args.fields[name], fields.List):
+                        serialized_args[name] = value
+                    else:
+                        serialized_args[name] = value[0]
+        else:
+            serialized_args = raw_args
+
+        return serialized_args
+
+    def to_dict(self):
+        request_as_dict = {'method': self.method, 'endpoint': self.endpoint}
+
+        if self.headers:
+            request_as_dict['headers'] = self.headers
+
+        if self.cookies:
+            request_as_dict['cookies'] = self.cookies
+
+        if self.paths:
+            request_as_dict['paths'] = self.paths
+
+        if self.queries:
+            request_as_dict['queries'] = self.queries
+
+        if self.content_type:
+            request_as_dict['content_type'] = self.content_type
+
+        if self.body:
+            request_as_dict['body'] = self.body
+
+        return request_as_dict
+
+
+class ResponseAdapter:
 
     def __init__(
-        self,
-        spec: Specification,
-        method: str,
-        endpoint: str,
-        headers: dict = None,
-        cookies: dict = None,
-        path_params: dict = None,
-        params: dict = None,
-        json: dict = None,
+        self, request: Request, response: Response, map_rules_to_paths: dict, spec: Specification
     ) -> None:
+        self.request = request
+        self.response = response
+        self.map_rules_to_paths = map_rules_to_paths
         self.spec = spec
-        self._paths_schema = self.spec.deserialized_spec['paths']
 
-        self.method = method.lower()
-        self.endpoint = endpoint
-        self.headers = headers
-        self.cookies = cookies
-        self.path_params = path_params
-        self.params = params
-        self.json = json
+        self.request_adapter = RequestAdapter(self.request, self.map_rules_to_paths, self.spec)
 
-        self.serialized_method = method.lower()
-        self.serialized_endpoint = endpoint.lower()
-        self.serialized_headers = headers
-        self.serialized_cookies = cookies
-        self.serialized_path_params = path_params
-        self.serialized_params = params
-        self.serialized_json = json
+        self.headers = dict(self.response.headers)
+        self.status_code = str(self.response.status_code)
+        self.content_type = self.response.mimetype
+        self.body = self.response.get_json() if self.response.is_json else self.response.data
 
-    def _validating_endpoint(self) -> FirstEndpointValidation or None:
-        endpoint = re.fullmatch(self.RE_ENDPOINT, self.endpoint)
-        if endpoint is None:
-            raise FirstEndpointValidation(
-                f'Endpoint <{self.endpoint}> not validating via regex <{self.RE_ENDPOINT}>.'
-            )
-        elif self.endpoint not in self._paths_schema:
-            raise FirstEndpointValidation(
-                f'Endpoint <{self.endpoint}> not in OpenAPI specification.'
-            )
+    def to_dict(self):
+        response_as_dict = {
+            k: v for k, v in self.request_adapter.to_dict().items() if k in ('endpoint', 'method')
+        }
 
-    def _validating_method(self) -> FirstEndpointValidation or None:
-        if self.method not in self._paths_schema[self.endpoint]:
-            raise FirstEndpointValidation(
-                f'Endpoint <{self.endpoint}> not in OpenAPI specification.'
-            )
+        if self.status_code:
+            response_as_dict['status_code'] = self.status_code
 
-    def _validating_headers(self) -> FirstRequestHeadersValidation or None:
-        params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
-        if params_schemas:
-            headers_schema = params_schemas.get('headers')
-            if headers_schema:
-                try:
-                    self.serialized_headers = headers_schema(unknown=EXCLUDE).load(self.headers)
-                except ValidationError as e:
-                    raise FirstRequestHeadersValidation(str(e))
-        else:
-            if self.path_params:
-                raise FirstRequestHeadersValidation('Headers of request not in specification.')
+        if self.content_type:
+            response_as_dict['content_type'] = self.content_type
 
-    def _validating_cookies(self) -> FirstRequestCookiesValidation or None:
-        params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
-        if params_schemas:
-            cookies_schema = params_schemas.get('cookies')
-            if cookies_schema:
-                try:
-                    self.serialized_cookies = cookies_schema(unknown=EXCLUDE).load(self.headers)
-                except ValidationError as e:
-                    raise FirstRequestCookiesValidation(str(e))
-        else:
-            if self.path_params:
-                raise FirstRequestCookiesValidation('Cookies of request not in specification.')
+        if self.body:
+            response_as_dict['body'] = self.body
 
-    def _validating_path_params(self) -> FirstRequestPathArgsValidation or None:
-        params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
-        if params_schemas:
-            path_params_schema = params_schemas.get('view_args')
-            if path_params_schema:
-                try:
-                    self.serialized_path_params = path_params_schema().load(self.path_params)
-                except ValidationError as e:
-                    raise FirstRequestPathArgsValidation(str(e))
-        else:
-            if self.path_params:
-                raise FirstRequestPathArgsValidation(
-                    'Path parameters of request not in specification.'
-                )
-
-    def _validating_params(self) -> FirstRequestArgsValidation or None:
-        params_schemas = self._paths_schema[self.endpoint][self.method].get('parameters')
-        if params_schemas:
-            args_schema = params_schemas.get('args')
-            if args_schema:
-                try:
-                    self.serialized_params = args_schema().load(self.params)
-                except ValidationError as e:
-                    raise FirstRequestArgsValidation(str(e))
-        else:
-            if self.params:
-                raise FirstRequestArgsValidation('Parameters of request not in specification.')
-
-    def _validating_json(self) -> FirstRequestJSONValidation or None:
-        request_body = self._paths_schema[self.endpoint][self.method].get('requestBody')
-        if request_body:
-            content = self._paths_schema[self.endpoint][self.method]['requestBody']['content']
-            json_schema = content[self.DEFAULT_CONTENT_TYPE]['schema']
-            try:
-                if isinstance(self.json, list):
-                    self.serialized_json = json_schema._load(self.json, None)
-                elif 'allOf' in json_schema._declared_fields:
-                    self.serialized_json = json_schema().load({'allOf': self.json})
-                elif 'anyOf' in json_schema._declared_fields:
-                    self.serialized_json = json_schema().load({'anyOf': self.json})
-                elif 'oneOf' in json_schema._declared_fields:
-                    self.serialized_json = json_schema().load({'oneOf': self.json})
-                else:
-                    self.serialized_json = json_schema().load(self.json)
-            except ValidationError as e:
-                raise FirstRequestJSONValidation(str(e))
-        else:
-            if self.json:
-                raise FirstRequestJSONValidation('JSON of request not in specification.')
-
-    def validate(self):
-        self._validating_endpoint()
-        self._validating_method()
-        self._validating_headers()
-        self._validating_cookies()
-        self._validating_path_params()
-        self._validating_params()
-        self._validating_json()
+        return response_as_dict

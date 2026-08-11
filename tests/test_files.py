@@ -3,7 +3,7 @@ from pathlib import Path
 from flask import request
 from flask import send_file
 
-from .conftest import BASEDIR
+from tests.conftest import BASEDIR
 
 
 def test_files(fx_get_path_spec_3_2_0, fx_create_app):

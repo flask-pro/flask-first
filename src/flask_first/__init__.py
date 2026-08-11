@@ -9,12 +9,11 @@ from flask import Response
 from flask.sansio.scaffold import T_route
 from flask_first.first import RequestAdapter
 from flask_first.first import ResponseAdapter
+from flask_first.first.exceptions import FirstException
+from flask_first.swagger_ui import add_swagger_ui_blueprint
 from schema_first import Specification
 from schema_first.query.exceptions import EndpointValidation
 from schema_first.query.validator import HTTPQueryValidator
-
-from .first.exceptions import FirstException
-from .swagger_ui import add_swagger_ui_blueprint
 
 
 class First:

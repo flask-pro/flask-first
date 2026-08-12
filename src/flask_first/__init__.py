@@ -169,7 +169,10 @@ class First:
                         f'Route <{rule}> for method <{method}> not exist in OpenAPI specification.'
                     )
 
-            self.paths[rule] = {'func': f, 'methods': methods, **options}
+            if self.app:
+                self._route_registration_in_flask(rule, func=f, methods=methods, **options)
+            else:
+                self.paths[rule] = {'func': f, 'methods': methods, **options}
 
             return f
 

@@ -1,0 +1,22 @@
+openapi: 3.2.0
+info:
+  title: OpenAPI file for testing Flask-First.
+  version: 1.0.0
+paths:
+  /{path_param}:
+    parameters:
+    - name: path_param
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  path_param:
+                    type: string

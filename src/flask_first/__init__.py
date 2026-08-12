@@ -40,10 +40,6 @@ class First:
         if self.app is not None:
             self.init_app(self.app)
 
-    @staticmethod
-    def route_to_openapi_format(route: str) -> str:
-        return route.replace('<', '{').replace('>', '}').replace('int:', '').replace('float:', '')
-
     def _get_param_schema(
         self, rule: str, method, part: t.Literal['headers', 'cookies', 'paths', 'queries']
     ) -> dict[str, Any] | None:
@@ -76,7 +72,7 @@ class First:
 
         return rule
 
-    def _route_registration_in_flask(
+    def endpoint_registration(
         self,
         path: str,
         func: t.Callable,
@@ -85,6 +81,7 @@ class First:
     ) -> None:
         if methods is None:
             methods = ['GET']
+
         for method in methods:
             rule = self._rule_convert_from_openapi_to_flask_format(path, method)
             self._map_rules_to_paths[rule] = path
@@ -142,7 +139,7 @@ class First:
             self._register_response_validation()
 
         for rule, options in self.paths.items():
-            self._route_registration_in_flask(rule, **options)
+            self.endpoint_registration(rule, **options)
 
     def route(
         self,
@@ -170,7 +167,7 @@ class First:
                     )
 
             if self.app:
-                self._route_registration_in_flask(rule, func=f, methods=methods, **options)
+                self.endpoint_registration(rule, func=f, methods=methods, **options)
             else:
                 self.paths[rule] = {'func': f, 'methods': methods, **options}
 

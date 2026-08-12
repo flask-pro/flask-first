@@ -26,6 +26,24 @@ def test_specification__factory_app(fx_get_path_spec_3_2_0):
         assert r.json['message'] == 'test_factory_app'
 
 
+def test_specification__endpoint_registration(fx_get_path_spec_3_2_0):
+    app = Flask('factory_app')
+    app.debug = True
+    app.testing = True
+
+    first = First(Path(fx_get_path_spec_3_2_0('mini.openapi.yaml')), app=app)
+
+    def mini_endpoint() -> dict:
+        return {'message': 'test_factory_app'}
+
+    first.endpoint_registration('/endpoint', mini_endpoint)
+
+    with app.test_client() as test_client:
+        r = test_client.get('/endpoint')
+        assert r.status_code == 200
+        assert r.json['message'] == 'test_factory_app'
+
+
 def test_flask_first__no_spec_endpoint(fx_create_app, fx_get_path_spec_3_2_0):
     app = Flask('testing_app')
     app.debug = True

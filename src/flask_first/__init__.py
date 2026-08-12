@@ -20,6 +20,8 @@ class First:
     """This class is used to generation routes from OpenAPI specification."""
 
     TYPES_IN_ROUTE_MAPPER = {'string': '', 'integer': 'int:', 'number': 'float:'}
+    SUPPORTED_REQUEST_CONTENT_TYPES = (None, 'application/json', 'multipart/form-data')
+    SUPPORTED_RESPONSE_CONTENT_TYPES = ('application/json',)
 
     def __init__(
         self,
@@ -91,6 +93,9 @@ class First:
     def _register_request_validation(self) -> None:
         @self.app.before_request
         def add_request_validating() -> None:
+            if request.content_type not in self.SUPPORTED_REQUEST_CONTENT_TYPES:
+                return
+
             prepared_request = RequestAdapter(
                 request, self._map_rules_to_paths, self.spec
             ).to_dict()
@@ -106,6 +111,9 @@ class First:
     def _register_response_validation(self) -> None:
         @self.app.after_request
         def add_response_validating(response: Response) -> Response:
+            if response.content_type not in self.SUPPORTED_RESPONSE_CONTENT_TYPES:
+                return response
+
             prepared_response = ResponseAdapter(
                 request, response, self._map_rules_to_paths, self.spec
             ).to_dict()

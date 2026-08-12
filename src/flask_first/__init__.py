@@ -7,12 +7,16 @@ from flask import Flask
 from flask import request
 from flask import Response
 from flask.sansio.scaffold import T_route
-from flask_first.first import RequestAdapter
-from flask_first.first import ResponseAdapter
-from flask_first.first.exceptions import FirstException
+from flask_first.exceptions import FirstException
+from flask_first.exceptions import FirstRequestValidationError
+from flask_first.exceptions import FirstResponseValidationError
+from flask_first.serializers import RequestAdapter
+from flask_first.serializers import ResponseAdapter
 from flask_first.swagger_ui import add_swagger_ui_blueprint
 from schema_first import Specification
 from schema_first.query.exceptions import EndpointValidation
+from schema_first.query.exceptions import RequestValidation
+from schema_first.query.exceptions import ResponseValidation
 from schema_first.query.validator import HTTPQueryValidator
 
 
@@ -102,6 +106,8 @@ class First:
                 deserialized_request = query_validator.request_handler(**prepared_request)
             except EndpointValidation:
                 return
+            except RequestValidation as exc:
+                raise FirstRequestValidationError(exc.args[0]) from exc
 
             request.extensions = {'first': deserialized_request}
 
@@ -120,14 +126,14 @@ class First:
                 query_validator.response_handler(**prepared_response)
             except EndpointValidation:
                 return response
+            except ResponseValidation as exc:
+                raise FirstResponseValidationError(exc.args[0]) from exc
 
             return response
 
     def init_app(self, app: Flask) -> None:
         self.app = app
         self.app.config.setdefault('FIRST_RESPONSE_VALIDATION', False)
-        self.app.config.setdefault('FIRST_EXPERIMENTAL_VALIDATOR', False)
-        self.app.config.setdefault('FIRST_DATETIME_FORMAT', None)
         self.app.extensions['first'] = self
 
         if self.swagger_ui_path:

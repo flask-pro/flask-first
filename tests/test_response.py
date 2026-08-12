@@ -1,6 +1,6 @@
 import pytest
 from flask import request
-from schema_first.query.exceptions import ResponseValidation
+from flask_first.exceptions import FirstResponseValidationError
 
 
 def test_response(fx_get_path_spec_3_2_0, fx_create_app):
@@ -24,7 +24,7 @@ def test_response_error(fx_get_path_spec_3_2_0, fx_create_app):
     path = '/endpoint'
     test_client = fx_create_app(path_to_spec, endpoint, path, methods=['POST'])
 
-    with pytest.raises(ResponseValidation) as exc:
+    with pytest.raises(FirstResponseValidationError) as exc:
         test_client.post(path, json={'field': 'OK'})
     assert (
         exc.value.args[0] == "Response <{'endpoint': '/endpoint', 'method': 'post',"

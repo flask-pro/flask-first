@@ -47,8 +47,6 @@ $ pip install -U flask_first
 
 * `FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
 developing. Must be disabled in a production environment.
-* `FIRST_DATETIME_FORMAT` - Default: `None`. Set format for `format: date-time`.
-Example: `%Y-%m-%dT%H:%M:%S.%fZ`.
 
 ## Tools
 
@@ -60,11 +58,11 @@ from flask import request
 
 
 def route_func():
-    path_parameters = request.extensions['first']['views']
-    args = request.extensions['first']['args']
-    json = request.extensions['first']['json']
-    cookies = request.extensions['first']['cookies']
     headers = request.extensions['first']['headers']
+    cookies = request.extensions['first']['cookies']
+    view_args = request.extensions['first']['paths']
+    args = request.extensions['first']['queries']
+    json = request.extensions['first']['json']
 ```
 
 ## Data types
@@ -106,7 +104,6 @@ paths:
       schema:
         type: string
     get:
-      operationId: index
       summary: Returns a list of items
       responses:
         '200':
@@ -189,7 +186,6 @@ name:
       schema:
       type: string
   get:
-    operationId: index
     summary: Returns a list of items
     responses:
       '200':

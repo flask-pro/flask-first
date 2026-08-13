@@ -6,7 +6,10 @@ from typing import Any
 from flask import Flask
 from flask import request
 from flask import Response
+from flask.sansio.scaffold import F
+from flask.sansio.scaffold import Scaffold
 from flask.sansio.scaffold import T_route
+from flask.sansio.scaffold import update_wrapper
 from flask_first.exceptions import FirstException
 from flask_first.exceptions import FirstRequestValidationError
 from flask_first.exceptions import FirstResponseValidationError
@@ -18,6 +21,13 @@ from schema_first.query.exceptions import EndpointValidation
 from schema_first.query.exceptions import RequestValidation
 from schema_first.query.exceptions import ResponseValidation
 from schema_first.query.validator import HTTPQueryValidator
+
+
+def setupmethod(f: F) -> F:
+    def wrapper_func(self: Scaffold, *args: t.Any, **kwargs: t.Any) -> t.Any:
+        return f(self, *args, **kwargs)
+
+    return t.cast(F, update_wrapper(wrapper_func, f))
 
 
 class First:
@@ -53,8 +63,8 @@ class First:
         if parameters_from_method:
             param_schema = parameters_from_method[part]['schema']
             return param_schema
-        else:
-            return None
+
+        return None
 
     def _rule_convert_from_openapi_to_flask_format(self, rule: str, method: str):
         path_params = re.findall(r'{(\S*?)}', rule)
@@ -80,12 +90,9 @@ class First:
         self,
         path: str,
         func: t.Callable,
-        methods: list[t.Literal['GET', 'POST', 'PUT', 'PATCH', 'DELETE']] | None = None,
+        methods: list[t.Literal['GET', 'POST', 'PUT', 'PATCH', 'DELETE']],
         **options,
     ) -> None:
-        if methods is None:
-            methods = ['GET']
-
         for method in methods:
             rule = self._rule_convert_from_openapi_to_flask_format(path, method)
             self._map_rules_to_paths[rule] = path
@@ -144,38 +151,34 @@ class First:
         if self.app.config['FIRST_RESPONSE_VALIDATION']:
             self._register_response_validation()
 
-        for rule, options in self.paths.items():
+        for rule_method, options in self.paths.items():
+            rule, _ = rule_method
             self.endpoint_registration(rule, **options)
 
-    def route(
-        self,
-        rule: str,
-        methods: list[t.Literal['GET', 'POST', 'PUT', 'PATCH', 'DELETE']] | None = None,
-        **options: t.Any,
-    ) -> t.Callable[[T_route], T_route]:
-
-        if methods is None:
-            methods = ['GET']
-
+    @setupmethod
+    def route(self, rule: str, **options: t.Any) -> t.Callable[[T_route], T_route]:
         def decorator(f: T_route) -> T_route:
-            if rule in self.paths:
-                raise FirstException(f'Rule <{rule}> exits.')
+            if 'methods' not in options:
+                options['methods'] = ['GET']
 
-            for method in methods:
-                route = self.spec.reassembly_spec['paths'].get(rule)
-                if not route:
+            for method in options['methods']:
+                if (rule, method) in self.paths:
+                    raise FirstException(f'Rule <{rule}> exits.')
+
+                path = self.spec.reassembly_spec['paths'].get(rule)
+                if not path:
                     raise FirstException(f'Route <{rule}> not exist in OpenAPI specification.')
 
-                method = route.get(method)
-                if not route:
+                method_from_path = path.get(method.lower())
+                if not method_from_path:
                     raise FirstException(
                         f'Route <{rule}> for method <{method}> not exist in OpenAPI specification.'
                     )
 
-            if self.app:
-                self.endpoint_registration(rule, func=f, methods=methods, **options)
-            else:
-                self.paths[rule] = {'func': f, 'methods': methods, **options}
+                if self.app:
+                    self.endpoint_registration(rule, func=f, **options)
+
+                self.paths[(rule, method)] = {'func': f, **options}
 
             return f
 

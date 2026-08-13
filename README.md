@@ -29,13 +29,13 @@ Flask extension for using "specification first" and "API-first" principles.
 * Validating and serializing JSON of request.
 * Validating JSON from response for debugging.
 * Provides a Swagger UI.
-* Support OpenAPI version 3.1.0.
+* Support OpenAPI version 3.2.0.
 * Support specification from multiple file.
 * The time zone is always UTC.
 
 ## Installation
 
-Recommended using the latest version of Python. Flask-First supports Python 3.9 and newer.
+Recommended using the latest version of Python. Flask-First supports Python 3.12 and newer.
 
 Install and update using `pip`:
 
@@ -47,8 +47,6 @@ $ pip install -U flask_first
 
 * `FIRST_RESPONSE_VALIDATION` - Default: `False`. Enabling response body validation. Useful when
 developing. Must be disabled in a production environment.
-* `FIRST_DATETIME_FORMAT` - Default: `None`. Set format for `format: date-time`.
-Example: `%Y-%m-%dT%H:%M:%S.%fZ`.
 
 ## Tools
 
@@ -60,11 +58,11 @@ from flask import request
 
 
 def route_func():
-    path_parameters = request.extensions['first']['views']
-    args = request.extensions['first']['args']
-    json = request.extensions['first']['json']
-    cookies = request.extensions['first']['cookies']
     headers = request.extensions['first']['headers']
+    cookies = request.extensions['first']['cookies']
+    view_args = request.extensions['first']['paths']
+    args = request.extensions['first']['queries']
+    json = request.extensions['first']['json']
 ```
 
 ## Data types
@@ -93,7 +91,7 @@ DateTime object is discarded and set as UTC.
 OpenAPI 3 specification file `openapi.yaml`:
 
 ```yaml
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Simple API for Flask-First
   version: 1.0.0
@@ -106,10 +104,9 @@ paths:
       schema:
         type: string
     get:
-      operationId: index
       summary: Returns a list of items
       responses:
-        200:
+        '200':
           description: OK
           content:
             application/json:
@@ -118,29 +115,30 @@ paths:
                 properties:
                   message:
                     type: string
+
 ```
 
 File with application initialization `main.py`:
 
 ```python
 import os
+from pathlib import Path
 
 from flask import Flask
 from flask_first import First
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-path_to_spec = os.path.join(basedir, 'openapi.yaml')
+path_to_spec = Path(basedir, 'openapi.yaml')
 
 app = Flask(__name__)
 app.config['FIRST_RESPONSE_VALIDATION'] = True
 first = First(path_to_spec, app=app, swagger_ui_path='/docs')
 
 
+@first.route('/{name}')
 def index(name):
     return {'message': name}
 
-
-first.add_view_func(index)
 
 if __name__ == '__main__':
     app.run()
@@ -163,7 +161,7 @@ specification with name `openapi.yaml`.
 Root file `openapi.yaml`:
 
 ```yaml
-openapi: 3.1.0
+openapi: 3.2.0
 info:
   title: Simple API for Flask-First
   version: 1.0.0
@@ -188,7 +186,6 @@ name:
       schema:
       type: string
   get:
-    operationId: index
     summary: Returns a list of items
     responses:
       '200':

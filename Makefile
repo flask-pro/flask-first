@@ -1,13 +1,17 @@
 VENV_DIR = venv
-PYTHON = python3.12
+PYTHON = python3.14
 PIP = $(VENV_DIR)/bin/pip
 PYTHON_VENV = $(VENV_DIR)/bin/python
 TOX = $(VENV_DIR)/bin/tox
 PRE_COMMIT = $(VENV_DIR)/bin/pre-commit
 
 
-.PHONY: venv test tox format clean build install upload_to_testpypi upload_to_pypi all
+.PHONY: install venv test tox format clean build install upload_to_testpypi upload_to_pypi all
 
+
+install: clean venv
+	pyenv local
+	pre-commit install
 
 venv: venv/pyvenv.cfg $(PKG_DIR)
 	# Create virtual environment.
@@ -28,7 +32,7 @@ test: venv
 
 tox: venv
 	# Testing project via several Python versions.
-	$(TOX)
+	$(TOX) run-parallel
 
 clean:
 	rm -rf dist/
@@ -36,9 +40,6 @@ clean:
 
 build: clean venv
 	$(PYTHON_VENV) -m build
-
-install: build
-	$(PIP) install dist/Flask-First-*.tar.gz
 
 upload_to_testpypi: build
 	$(PYTHON_VENV) -m twine upload --repository testpypi dist/*

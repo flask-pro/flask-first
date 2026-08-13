@@ -29,7 +29,7 @@ Flask extension for using "specification first" and "API-first" principles.
 * Validating and serializing JSON of request.
 * Validating JSON from response for debugging.
 * Provides a Swagger UI.
-* Support OpenAPI version 3.1.0.
+* Support OpenAPI version 3.2.0.
 * Support specification from multiple file.
 * The time zone is always UTC.
 

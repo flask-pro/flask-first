@@ -3,7 +3,7 @@ repos:
   rev: v3.21.2
   hooks:
   - id: pyupgrade
-    args: [--py39-plus]
+    args: [--py312-plus]
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0
   hooks:
@@ -56,8 +56,3 @@ repos:
   hooks:
   - id: md-toc
     args: [-p, github]
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.21.2
-  hooks:
-  - id: pyupgrade
-    args: [--py39-plus]

@@ -1,3 +1,7 @@
+## Version 0.91.0
+
+* Bump version `Schema-First`.
+
 ## Version 0.90.0
 
 * Bump version `Flask`.

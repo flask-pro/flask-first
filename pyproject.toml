@@ -8,20 +8,19 @@ authors = [
 ]
 classifiers = [
   "Framework :: Flask",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3"
 ]
 dependencies = [
   'Flask>=3.1.3',
-  'Schema-First>=0.16.3'
+  'Schema-First>=0.16.4'
 ]
 description = "Flask extension for using 'specification first' or 'API-first' principle via OpenAPI specification."
 license = {file = "LICENSE"}
 name = "Flask-First"
 readme = "README.md"
 requires-python = ">=3.12"
-version = "0.90.0"
+version = "0.91.0"
 
 [project.optional-dependencies]
 dev = [
